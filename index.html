@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ClashClone — Official Browser Edition</title>
+  <meta name="description" content="ClashClone is a fast paced game inspired by Clash Royale all in your Browser!."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css"/>
+</head>
+<body>
+  <!-- Sticky Nav -->
+  <header class="nav glass">
+    <div class="nav-inner">
+      <a href="#" class="brand">
+        <span class="logo">⚔️</span>
+        <span>ClashClone</span>
+      </a>
+      <nav class="nav-links" id="navLinks">
+        <a href="#features">Features</a>
+        <a href="#cards">Cards</a>
+        <a href="#preview">Preview</a>
+        <a href="#roadmap">Roadmap</a>
+        <a href="#faq">FAQ</a>
+        <a class="button primary" href="Game/Index.html">Play Now</a>
+      </nav>
+      <div class="nav-ctrls">
+        <button class="button ghost small" id="themeToggle" aria-label="Toggle theme">🌗</button>
+        <button class="menu" id="menuBtn" aria-label="Menu">☰</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero with particles -->
+  <section class="hero" id="home">
+    <canvas id="bgParticles" aria-hidden="true"></canvas>
+    <div class="hero-inner">
+      <h1 class="title">
+        A <span class="gradient">hyper-satisfying</span> lane clash in your browser.
+      </h1>
+      <p class="subtitle">Build a deck, outplay the AI, and topple the king tower — no downloads.</p>
+      <div class="hero-cta">
+        <a class="button primary xl" href="Game/Index.html">Play in Browser</a>
+        <a class="button ghost xl" href="#features">Explore Features</a>
+      </div>
+      <div class="metrics">
+        <div class="metric"><span class="num" data-count="3">0</span><span class="label">Arenas</span></div>
+        <div class="metric"><span class="num" data-count="24">0</span><span class="label">Cards (target)</span></div>
+        <div class="metric"><span class="num" data-count="60">0</span><span class="label">FPS</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="section" id="features">
+    <h2 class="section-title">Built for flow</h2>
+    <div class="feature-grid">
+      <article class="card">
+        <h3>Instant Play</h3>
+        <p>Runs fully client‑side. Click and clash — zero installs.</p>
+      </article>
+      <article class="card">
+        <h3>Feedback</h3>
+        <p>Send us feedback at: email@gmail.com</p>
+      </article>
+      <article class="card">
+        <h3>Adaptive AI</h3>
+        <p>Pressure that feels fair — opponents ramp up as you do.</p>
+      </article>
+      <article class="card">
+        <h3>Hotkey Deck</h3>
+        <p>Hotkeys<strong>1–4</strong> Getting added soon!</p>
+      </article>
+    </div>
+  </section>
+
+  <!-- Cards Carousel -->
+  <section class="section" id="cards">
+    <h2 class="section-title">Card Showcase</h2>
+    <div class="carousel">
+      <button class="carousel-btn prev" aria-label="Previous">‹</button>
+      <div class="carousel-track" id="carouselTrack">
+        <div class="carousel-item glass">
+          <img src="assets/cards/soldier.svg" alt="Soldier card"/>
+          <h4>Goblins</h4>
+          <p>Cheap, 4 Goblins spawn to apply pressure!</p>
+        </div>
+        <div class="carousel-item glass">
+          <img src="assets/cards/knight.svg" alt="Knight card"/>
+          <h4>Fireball</h4>
+          <p>Easily clear hordes of goblins.</p>
+        </div>
+        <div class="carousel-item glass">
+          <img src="assets/cards/ranger.svg" alt="Ranger card"/>
+          <h4>Mini Pekka</h4>
+          <p>Fast, High damage card ready to take down the king tower!</p>
+        </div>
+        <div class="carousel-item glass">
+          <img src="assets/cards/giant.svg" alt="Giant card"/>
+          <h4>Updates?</h4>
+          <p>And more coming each update.</p>
+        </div>
+      </div>
+      <button class="carousel-btn next" aria-label="Next">›</button>
+    </div>
+  </section>
+
+  <!-- Gameplay Preview -->
+  <section class="section" id="preview">
+    <h2 class="section-title">Gameplay Preview</h2>
+    <div class="preview glass">
+      <img src="assets/preview.gif" alt="Gameplay preview"/>
+      <div class="preview-copy">
+        <h3>Drop. Clash. Win.</h3>
+        <p>Pick a card with 1–4, click a lane to deploy, and overwhelm the enemy tower before the timer hits zero.</p>
+        <a class="button primary" href="Game/Index.html">Jump In</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Roadmap Timeline -->
+  <section class="section" id="roadmap">
+    <h2 class="section-title">Roadmap</h2>
+    <div class="timeline">
+      <div class="milestone">
+        <span class="when">Now</span>
+        <h4>Playable Prototype</h4>
+        <p>Three lanes, elixir, basic AI, juicy VFX.</p>
+      </div>
+      <div class="milestone">
+        <span class="when">Next</span>
+        <h4>Card Rarities</h4>
+        <p>Commons, rares, epics — with unique passives.</p>
+      </div>
+      <div class="milestone">
+        <span class="when">Later</span>
+        <h4>Online 1v1</h4>
+        <p>ELO ladder, seasons, clans and replays.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="section" id="faq">
+    <h2 class="section-title">FAQ</h2>
+    <details open class="faq-item">
+      <summary>Does it work offline?</summary>
+      <p>Yep. It’s a static site; everything runs in your browser.</p>
+    </details>
+    <details class="faq-item">
+      <summary>Is this like Clash Royale?</summary>
+      <p>It’s inspired by the lane-duel genre, adapted for the web.</p>
+    </details>
+    <details class="faq-item">
+      <summary>Where do I play?</summary>
+      <p>Hit <em>Play Now</em> in the header or <a href="Game/Index.html">click here</a>.</p>
+    </details>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p>© <span id="year"></span> ClashClone • Made for the web</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
