@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arena Clash</title>
+<style>
+/* ------------------ GLOBAL ------------------ */
+body {
+  margin:0;
+  font-family:sans-serif;
+  background:#87CEEB;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
+
+/* ------------------ CANVAS ------------------ */
+canvas {
+  background:#4CAF50;
+  border:2px solid #333;
+  margin-top:20px;
+}
+
+/* ------------------ UI ------------------ */
+#loginUI, #mainMenu, #deckMenu, #shopMenu, #gameUI, #chestModal {
+  display:none;
+  flex-direction:column;
+  align-items:center;
+}
+
+/* ------------------ LOGIN ------------------ */
+#loginUI {
+  display:flex;
+  margin-top:50px;
+}
+input {
+  margin:5px;
+  padding:8px;
+}
+button {
+  margin:10px;
+  padding:10px 20px;
+  font-size:16px;
+  cursor:pointer;
+  border-radius:8px;
+}
+
+/* ------------------ CARDS ------------------ */
+#deckSlots, #cardPool, #shop, #chestCards {
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:center;
+  margin-top:10px;
+}
+.card, .deckSlot, .chestCard {
+  width:70px;
+  height:90px;
+  margin:5px;
+  background:#FFF;
+  border:2px solid #333;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  cursor:pointer;
+  font-weight:bold;
+  position:relative;
+  transition: transform 0.3s ease;
+  border-radius:10px;
+}
+.card.disabled { opacity:0.5; pointer-events:none; }
+.deckSlot { border:2px dashed #333; background:#eee; }
+
+/* ------------------ CHEST MODAL ------------------ */
+#chestModal {
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background:rgba(0,0,0,0.7);
+  justify-content:center;
+  align-items:center;
+  flex-direction:column;
+  color:#fff;
+}
+
+/* ------------------ ELIXIR ------------------ */
+#elixirBar, #botElixirBar {
+  width:200px;
+  height:20px;
+  border:2px solid #333;
+  margin-top:10px;
+  background:#222;
+  position:relative;
+  border-radius:6px;
+}
+#elixirFill, #botElixirFill {
+  position:absolute;
+  top:0;
+  left:0;
+  height:100%;
+  background:purple;
+  border-radius:6px;
+}
+#hand { display:flex; margin-top:10px; }
+
+/* ------------------ MAIN MENU ------------------ */
+.menu-container {
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  width:100%;
+  height:100vh;
+  background: linear-gradient(to bottom, #4db6ac, #81c784);
+  color:#fff;
+  font-family: 'Arial', sans-serif;
+  text-align:center;
+}
+
+.menu-header h1 {
+  font-size:48px;
+  text-shadow: 2px 2px 4px #000;
+  margin-bottom:10px;
+}
+.player-info {
+  font-size:16px;
+  margin-bottom:30px;
+}
+
+.menu-buttons {
+  display:flex;
+  flex-direction:column;
+  gap:20px;
+}
+.menu-card {
+  background: #fdd835;
+  color: #333;
+  font-weight: bold;
+  font-size:20px;
+  padding: 20px 40px;
+  border-radius: 20px;
+  border: 2px solid #fff;
+  display:flex;
+  align-items:center;
+  gap:15px;
+  cursor:pointer;
+  transition: transform 0.2s, background 0.2s;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+.menu-card:hover {
+  transform: scale(1.05);
+  background: #ffeb3b;
+}
+.menu-icon {
+  width:40px;
+  height:40px;
+}
+.menu-footer {
+  margin-top:50px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
+.menu-chest {
+  width:60px;
+  height:60px;
+  margin-top:10px;
+  animation: bounce 1s infinite alternate;
+}
+@keyframes bounce {
+  from { transform: translateY(0px); }
+  to { transform: translateY(-10px); }
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div id="loginUI">
+  <h2>Login / Create Account</h2>
+  <input id="usernameInput" placeholder="Username">
+  <input id="passwordInput" type="password" placeholder="Password">
+  <button id="loginBtn">Login</button>
+  <button id="createBtn">Create Account</button>
+  <p id="loginMsg"></p>
+</div>
+
+<!-- MAIN MENU -->
+<div id="mainMenu" class="menu-container">
+  <div class="menu-header">
+    <h1>Arena Clash</h1>
+    <div class="player-info">
+      <span>Level 5</span> | <span>Trophies: 1200</span>
+    </div>
+  </div>
+  <div class="menu-buttons">
+    <button class="menu-card" id="openDeckBtn">
+      <img src="https://i.imgur.com/Wz0mBbr.png" alt="Deck" class="menu-icon">
+      Customize Deck
+    </button>
+    <button class="menu-card" id="startGameBtn">
+      <img src="https://i.imgur.com/GlA1clB.png" alt="Battle" class="menu-icon">
+      Battle
+    </button>
+    <button class="menu-card" id="openShopBtn">
+      <img src="https://i.imgur.com/AdX5MCc.png" alt="Shop" class="menu-icon">
+      Shop
+    </button>
+    <button class="menu-card" id="logoutBtn">
+      Logout
+    </button>
+  </div>
+  <div class="menu-footer">
+    <span>Daily Chest</span>
+    <img src="https://i.imgur.com/6rH7TRq.png" alt="Chest" class="menu-chest">
+  </div>
+</div>
+
+<!-- DECK MENU -->
+<div id="deckMenu">
+  <h2>Customize Your Deck</h2>
+  <div id="deckSlots"></div>
+  <h3>Available Cards</h3>
+  <div id="cardPool"></div>
+  <button id="deckDoneBtn">Done</button>
+</div>
+
+<!-- SHOP -->
+<div id="shopMenu">
+  <h2>Shop</h2>
+  <div id="shop"></div>
+  <button id="shopBackBtn">Back</button>
+</div>
+
+<!-- CHEST MODAL -->
+<div id="chestModal">
+  <h2>Chest Opened!</h2>
+  <div id="chestCards"></div>
+  <button id="closeChestBtn">Close</button>
+</div>
+
+<!-- GAME UI -->
+<div id="gameUI">
+  <div>Player Elixir</div>
+  <div id="elixirBar"><div id="elixirFill"></div></div>
+  <div>Bot Elixir</div>
+  <div id="botElixirBar"><div id="botElixirFill"></div></div>
+  <canvas id="game" width="800" height="600"></canvas>
+  <div id="hand"></div>
+</div>
+
+<script>
+/* ------------------ STORAGE ------------------ */
+let currentUser=null;
+function loadAccounts(){ return JSON.parse(localStorage.getItem('accounts')||'{}'); }
+function saveAccounts(acc){ localStorage.setItem('accounts',JSON.stringify(acc)); }
+function saveUserData(){ let acc=loadAccounts(); acc[currentUser.username]=currentUser; saveAccounts(acc); }
+
+/* ------------------ LOGIN ------------------ */
+const loginUI=document.getElementById('loginUI'),
+loginBtn=document.getElementById('loginBtn'),
+createBtn=document.getElementById('createBtn'),
+usernameInput=document.getElementById('usernameInput'),
+passwordInput=document.getElementById('passwordInput'),
+loginMsg=document.getElementById('loginMsg');
+
+loginBtn.onclick=()=>{
+  let acc=loadAccounts(), u=usernameInput.value, p=passwordInput.value;
+  if(acc[u]&&acc[u].password===p){
+    currentUser=acc[u];
+    loginUI.style.display='none';
+    mainMenu.style.display='flex';
+  } else loginMsg.innerText='Invalid login';
+};
+
+createBtn.onclick=()=>{
+  let acc=loadAccounts(), u=usernameInput.value, p=passwordInput.value;
+  if(acc[u]){ loginMsg.innerText='Username taken'; return; }
+  currentUser={username:u,password:p,deck:['knight','archer','giant','goblin'],unlocked:['knight','archer','giant','goblin'],lastChest:0};
+  acc[u]=currentUser;
+  saveAccounts(acc);
+  loginMsg.innerText='Account created! Please log in.';
+};
+
+document.getElementById('logoutBtn').onclick=()=>{
+  saveUserData();
+  currentUser=null;
+  mainMenu.style.display='none';
+  loginUI.style.display='flex';
+};
+
+/* ------------------ CARDS ------------------ */
+const allCards=[
+  { id:'knight', name:'Knight', elixir:3, hp:120, speed:1.2, damage:20, range:15, attackSpeed:1, type:'melee', img:'https://i.imgur.com/Wz0mBbr.png', sprites:['https://i.imgur.com/Wz0mBbr.png','https://i.imgur.com/2lKNn5L.png','https://i.imgur.com/YbUvffL.png','https://i.imgur.com/qw1GqM8.png'] },
+  { id:'archer', name:'Archer', elixir:3, hp:40, speed:1.0, damage:15, range:120, attackSpeed:1, type:'ranged', img:'https://i.imgur.com/AdX5MCc.png', sprites:['https://i.imgur.com/AdX5MCc.png','https://i.imgur.com/h77w6kc.png','https://i.imgur.com/JuJg1rY.png','https://i.imgur.com/dpftvCk.png'] },
+  { id:'giant', name:'Giant', elixir:5, hp:250, speed:0.7, damage:40, range:15, attackSpeed:1.2, type:'tower', img:'https://i.imgur.com/GlA1clB.png', sprites:['https://i.imgur.com/GlA1clB.png','https://i.imgur.com/EzQqrrS.png','https://i.imgur.com/Opqk3Xb.png','https://i.imgur.com/Q2o5s2y.png'] },
+  { id:'goblin', name:'Goblin', elixir:2, hp:25, speed:1.6, damage:10, range:15, attackSpeed:0.7, type:'melee', img:'https://i.imgur.com/6rH7TRq.png', sprites:['https://i.imgur.com/6rH7TRq.png','https://i.imgur.com/JWq8Z9K.png','https://i.imgur.com/OPmdW1v.png','https://i.imgur.com/QO6cZcL.png'] }
+];
+
+/* ------------------ VARIABLES ------------------ */
+let playerDeck=[], hand=[], nextCardIndex=0, elixir=10, maxElixir=10, elixirRegen=0.02;
+let botDeck=[], botHand=[], botNextCardIndex=0, botElixir=10, botMaxElixir=10, botElixirRegen=0.02;
+let gameRunning=false, draggedCard=null, dragX=0, dragY=0;
+
+const canvas=document.getElementById('game'), ctx=canvas.getContext('2d');
+const towers=[{x:100,y:300,hp:1000,owner:'player'},{x:700,y:300,hp:1000,owner:'bot'}];
+const playerUnits=[], botUnits=[], projectiles=[];
+
+/* ------------------ MENUS ------------------ */
+const mainMenu=document.getElementById('mainMenu'),
+deckMenu=document.getElementById('deckMenu'),
+deckSlotsDiv=document.getElementById('deckSlots'),
+cardPoolDiv=document.getElementById('cardPool'),
+deckDoneBtn=document.getElementById('deckDoneBtn'),
+openDeckBtn=document.getElementById('openDeckBtn'),
+startGameBtn=document.getElementById('startGameBtn'),
+shopMenu=document.getElementById('shopMenu'),
+shopDiv=document.getElementById('shop'),
+shopBackBtn=document.getElementById('shopBackBtn'),
+chestModal=document.getElementById('chestModal'),
+chestCardsDiv=document.getElementById('chestCards'),
+closeChestBtn=document.getElementById('closeChestBtn'),
+handDiv=document.getElementById('hand'),
+elixirFill=document.getElementById('elixirFill'),
+botElixirFill=document.getElementById('botElixirFill');
+
+/* ------------------ DECK MENU ------------------ */
+function showDeckMenu(){ mainMenu.style.display='none'; deckMenu.style.display='flex'; renderDeck(); renderPool(); }
+function renderDeck(){ deckSlotsDiv.innerHTML=''; for(let i=0;i<4;i++){ const slot=document.createElement('div'); slot.className='deckSlot'; if(currentUser.deck[i]) slot.innerText=currentUser.deck[i]; slot.onclick=()=>{ currentUser.deck.splice(i,1); renderDeck(); renderPool(); }; deckSlotsDiv.appendChild(slot); } }
+function renderPool(){ cardPoolDiv.innerHTML=''; allCards.forEach(c=>{ const el=document.createElement('div'); el.className='card'+(currentUser.unlocked.includes(c.id)?'':' disabled'); el.innerText=c.name; if(currentUser.unlocked.includes(c.id)) el.onclick=()=>{ if(currentUser.deck.length<4&&!currentUser.deck.includes(c.id)){ currentUser.deck.push(c.id); renderDeck(); } }; cardPoolDiv.appendChild(el); }); }
+
+/* ------------------ SHOP ------------------ */
+function showShop(){ mainMenu.style.display='none'; shopMenu.style.display='flex'; shopDiv.innerHTML=''; const chest=document.createElement('div'); chest.className='card'; chest.innerText='Free Chest'; chest.onclick=openChest; shopDiv.appendChild(chest); }
+function openChest(){ let today=new Date().toDateString(); if(currentUser.lastChest===today){ alert("Already claimed today"); return; } chestModal.style.display='flex'; chestCardsDiv.innerHTML=''; currentUser.lastChest=today; for(let i=0;i<2;i++){ let c=allCards[Math.floor(Math.random()*allCards.length)]; if(!currentUser.unlocked.includes(c.id)) currentUser.unlocked.push(c.id); const el=document.createElement('div'); el.className='chestCard'; el.innerText=c.name; el.style.transform='scale(0)'; chestCardsDiv.appendChild(el); setTimeout(()=>{ el.style.transform='scale(1)'; },i*300); } saveUserData(); }
+
+/* ------------------ BUTTONS ------------------ */
+openDeckBtn.onclick=showDeckMenu;
+deckDoneBtn.onclick=()=>{ deckMenu.style.display='none'; mainMenu.style.display='flex'; saveUserData(); }
+openShopBtn.onclick=showShop;
+shopBackBtn.onclick=()=>{ shopMenu.style.display='none'; mainMenu.style.display='flex'; }
+closeChestBtn.onclick=()=>{ chestModal.style.display='none'; }
+startGameBtn.onclick=()=>{ if(currentUser.deck.length!==4){ alert('Need exactly 4 cards'); return; } startGame(); }
+
+/* ------------------ GAME START ------------------ */
+function startGame(){ mainMenu.style.display='none'; deckMenu.style.display='none'; shopMenu.style.display='none'; document.getElementById('gameUI').style.display='flex'; playerDeck=currentUser.deck.map(id=>allCards.find(c=>c.id===id)); hand=[...playerDeck]; nextCardIndex=0; botDeck=[...playerDeck]; botHand=[...botDeck]; botNextCardIndex=0; setupHandUI(); gameRunning=true; requestAnimationFrame(gameLoop); }
+function setupHandUI(){ handDiv.innerHTML=''; hand.forEach((c,i)=>{ const el=document.createElement('div'); el.className='card'; const img=new Image(); img.src=c.img; img.width=60; img.height=80; el.appendChild(img); el.onmousedown=()=>{ draggedCard={...c,index:i}; }; handDiv.appendChild(el); }); }
+
+/* ------------------ UNIT & BOT FUNCTIONS ------------------ */
+function distance(a,b){ return Math.hypot(a.x-b.x,a.y-b.y); }
+function createUnit(c,x,y,owner){ return {...c,x,y,owner,hp:c.hp,attackCooldown:0,target:null,frameIndex:0}; }
+function moveUnit(u){ if(!u.target||u.target.hp<=0){ u.target=chooseTarget(u); } if(!u.target) return; const dx=u.target.x-u.x, dy=u.target.y-u.y, dist=Math.hypot(dx,dy); if(dist>u.range){ u.x+=dx/dist*u.speed; u.y+=dy/dist*u.speed; u.frameIndex+=0.2; if(u.frameIndex>=u.sprites.length) u.frameIndex=0; } else if(u.attackCooldown<=0){ u.target.hp-=u.damage; u.attackCooldown=u.attackSpeed*60; } if(u.attackCooldown>0) u.attackCooldown--; }
+function chooseTarget(u){ const enemies=(u.owner==='player'?botUnits:playerUnits).filter(e=>e.hp>0); const towersEnemy=towers.filter(t=>t.owner!==u.owner); const closeEnemy=enemies.find(e=>distance(u,e)<80); return closeEnemy||findClosest(u,enemies)||findClosest(u,towersEnemy); }
+function findClosest(u,list){ if(list.length===0) return null; return list.reduce((a,b)=>distance(u,a)<distance(u,b)?a:b); }
+function botPlay(){ if(botUnits.length>=6) return; let card=botHand[Math.floor(Math.random()*botHand.length)]; if(botElixir>=card.elixir){ botUnits.push(createUnit(card,canvas.width-100,Math.random()*500+50,'bot')); botElixir-=card.elixir; botHand.splice(botHand.indexOf(card),1,botDeck[botNextCardIndex]); botNextCardIndex=(botNextCardIndex+1)%botDeck.length; } }
+
+/* ------------------ DRAGGING ------------------ */
+document.addEventListener('mousemove',e=>{ if(draggedCard){ const r=canvas.getBoundingClientRect(); dragX=e.clientX-r.left; dragY=e.clientY-r.top; }});
+canvas.addEventListener('mouseup',e=>{ if(!draggedCard||!gameRunning) return; const r=canvas.getBoundingClientRect(), x=e.clientX-r.left, y=e.clientY-r.top; if(x<canvas.width/2 && elixir>=draggedCard.elixir){ playerUnits.push(createUnit(draggedCard,x,y,'player')); elixir-=draggedCard.elixir; hand.splice(draggedCard.index,1,playerDeck[nextCardIndex]); nextCardIndex=(nextCardIndex+1)%playerDeck.length; setupHandUI(); } draggedCard=null; });
+
+/* ------------------ GAME LOOP ------------------ */
+function gameLoop(){
+  if(!gameRunning) return;
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  towers.forEach(t=>{
+    ctx.fillStyle=t.owner==='player'?'blue':'red';
+    ctx.fillRect(t.x-25,t.y-25,50,50);
+    ctx.fillStyle='white';
+    ctx.fillText(Math.floor(t.hp),t.x-15,t.y);
+  });
+
+  elixir+=elixirRegen; if(elixir>maxElixir) elixir=maxElixir;
+  elixirFill.style.width=(elixir/maxElixir*100)+'%';
+
+  botElixir+=botElixirRegen; if(botElixir>botMaxElixir) botElixir=botMaxElixir;
+  botElixirFill.style.width=(botElixir/botMaxElixir*100)+'%';
+
+  playerUnits.forEach(moveUnit); botUnits.forEach(moveUnit);
+
+  [...playerUnits,...botUnits].forEach(u=>{
+    const img=new Image(); img.src=u.sprites[Math.floor(u.frameIndex)]; ctx.drawImage(img,u.x-15,u.y-15,30,30);
+  });
+
+  playerUnits.forEach((u,i)=>{ if(u.hp<=0) playerUnits.splice(i,1); });
+  botUnits.forEach((u,i)=>{ if(u.hp<=0) botUnits.splice(i,1); });
+
+  if(Math.random()<0.01) botPlay();
+
+  if(towers.find(t=>t.owner==='player'&&t.hp<=0)){ alert('Defeat!'); location.reload(); }
+  if(towers.find(t=>t.owner==='bot'&&t.hp<=0)){ alert('Victory!'); location.reload(); }
+
+  if(draggedCard){ ctx.globalAlpha=0.5; const img=new Image(); img.src=draggedCard.img; ctx.drawImage(img,dragX-15,dragY-15,30,30); ctx.globalAlpha=1; }
+
+  requestAnimationFrame(gameLoop);
+}
+</script>
+
+</body>
+</html>
