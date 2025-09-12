@@ -8,42 +8,66 @@
 /* ------------------ GLOBAL ------------------ */
 body {
   margin:0;
-  font-family:sans-serif;
-  background:#87CEEB;
+  font-family: 'Supercell-Magic', sans-serif, Arial;
+  background: linear-gradient(to bottom, #4facfe, #00f2fe);
   display:flex;
   flex-direction:column;
   align-items:center;
+  color:#fff;
+  overflow-x:hidden;
+}
+@font-face {
+  font-family: 'Supercell-Magic';
+  src: url('https://cdn.jsdelivr.net/gh/supercellfan/fonts@main/Supercell-Magic.ttf') format('truetype');
 }
 
 /* ------------------ CANVAS ------------------ */
 canvas {
-  background:#4CAF50;
-  border:2px solid #333;
+  background:#3eac4c;
+  border:4px solid #2c2c2c;
+  border-radius:12px;
   margin-top:20px;
 }
 
-/* ------------------ UI ------------------ */
+/* ------------------ UI SECTIONS ------------------ */
 #loginUI, #mainMenu, #deckMenu, #shopMenu, #gameUI, #chestModal {
   display:none;
   flex-direction:column;
   align-items:center;
+  width:100%;
 }
 
 /* ------------------ LOGIN ------------------ */
 #loginUI {
   display:flex;
   margin-top:50px;
+  background: rgba(0,0,0,0.6);
+  padding:20px;
+  border-radius:20px;
 }
 input {
   margin:5px;
-  padding:8px;
+  padding:10px;
+  border-radius:10px;
+  border:none;
+  font-size:16px;
 }
 button {
   margin:10px;
-  padding:10px 20px;
-  font-size:16px;
+  padding:12px 24px;
+  font-size:18px;
+  font-weight:bold;
   cursor:pointer;
-  border-radius:8px;
+  border-radius:12px;
+  border:none;
+  background: linear-gradient(to bottom, #ffcc00, #ff9900);
+  color:#222;
+  box-shadow:0 4px #b37400;
+  transition:transform 0.1s;
+}
+button:active {
+  transform:translateY(2px);
+  box-shadow:0 2px #b37400;
 }
 
 /* ------------------ CARDS ------------------ */
@@ -51,25 +75,37 @@ button {
   display:flex;
   flex-wrap:wrap;
   justify-content:center;
-  margin-top:10px;
+  margin-top:15px;
+  max-width:90%;
 }
 .card, .deckSlot, .chestCard {
-  width:70px;
-  height:90px;
-  margin:5px;
-  background:#FFF;
-  border:2px solid #333;
+  width:80px;
+  height:100px;
+  margin:6px;
+  background:#fff;
+  border:3px solid #333;
+  border-radius:12px;
   display:flex;
   justify-content:center;
   align-items:center;
   cursor:pointer;
   font-weight:bold;
-  position:relative;
-  transition: transform 0.3s ease;
-  border-radius:10px;
+  text-align:center;
+  color:#000;
+  transition: transform 0.2s ease;
 }
-.card.disabled { opacity:0.5; pointer-events:none; }
-.deckSlot { border:2px dashed #333; background:#eee; }
+.card.disabled {
+  opacity:0.5;
+  pointer-events:none;
+}
+.deckSlot {
+  border:3px dashed #555;
+  background:#eee;
+  color:#333;
+}
+.card:hover, .chestCard:hover {
+  transform: scale(1.05);
+}
 
 /* ------------------ CHEST MODAL ------------------ */
 #chestModal {
@@ -78,32 +114,52 @@ button {
   left:0;
   width:100%;
   height:100%;
-  background:rgba(0,0,0,0.7);
+  background:rgba(0,0,0,0.8);
   justify-content:center;
   align-items:center;
   flex-direction:column;
   color:#fff;
+  z-index:1000;
+}
+.chestCard {
+  background:linear-gradient(to bottom, #ffd700, #ff9900);
+  border:3px solid #fff;
+  border-radius:14px;
+  color:#222;
+  font-size:16px;
+  font-weight:bold;
+  padding:10px;
 }
 
 /* ------------------ ELIXIR ------------------ */
 #elixirBar, #botElixirBar {
-  width:200px;
-  height:20px;
+  width:240px;
+  height:22px;
   border:2px solid #333;
-  margin-top:10px;
-  background:#222;
+  margin:8px;
+  background:#111;
   position:relative;
-  border-radius:6px;
+  border-radius:12px;
 }
 #elixirFill, #botElixirFill {
   position:absolute;
   top:0;
   left:0;
   height:100%;
-  background:purple;
-  border-radius:6px;
+  background:linear-gradient(to right, #8e2de2, #4a00e0);
+  border-radius:12px;
 }
-#hand { display:flex; margin-top:10px; }
+#hand {
+  display:flex;
+  margin-top:12px;
+  justify-content:center;
+  gap:10px;
+}
+#hand .card {
+  border-radius:14px;
+  border:3px solid #333;
+  background:#eee;
+}
 
 /* ------------------ MAIN MENU ------------------ */
 .menu-container {
@@ -113,49 +169,47 @@ button {
   justify-content:center;
   width:100%;
   height:100vh;
-  background: linear-gradient(to bottom, #4db6ac, #81c784);
+  background: linear-gradient(to bottom, #0f2027, #203a43, #2c5364);
   color:#fff;
-  font-family: 'Arial', sans-serif;
   text-align:center;
 }
-
 .menu-header h1 {
-  font-size:48px;
-  text-shadow: 2px 2px 4px #000;
-  margin-bottom:10px;
+  font-size:54px;
+  color:#ffcc00;
+  text-shadow: 3px 3px 0px #000;
+  margin-bottom:15px;
 }
 .player-info {
-  font-size:16px;
-  margin-bottom:30px;
+  font-size:18px;
+  margin-bottom:40px;
 }
-
 .menu-buttons {
   display:flex;
   flex-direction:column;
-  gap:20px;
+  gap:25px;
 }
 .menu-card {
-  background: #fdd835;
-  color: #333;
-  font-weight: bold;
-  font-size:20px;
-  padding: 20px 40px;
-  border-radius: 20px;
-  border: 2px solid #fff;
+  background: linear-gradient(to bottom, #ffcc00, #ff9900);
+  color:#222;
+  font-weight:bold;
+  font-size:22px;
+  padding: 22px 50px;
+  border-radius:20px;
+  border:3px solid #fff;
   display:flex;
   align-items:center;
-  gap:15px;
+  gap:20px;
   cursor:pointer;
-  transition: transform 0.2s, background 0.2s;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+  transition: transform 0.15s, background 0.15s;
+  box-shadow:0 6px 0px #b37400;
 }
 .menu-card:hover {
-  transform: scale(1.05);
-  background: #ffeb3b;
+  transform: scale(1.08);
+  background: linear-gradient(to bottom, #ffe066, #ffcc00);
 }
 .menu-icon {
-  width:40px;
-  height:40px;
+  width:48px;
+  height:48px;
 }
 .menu-footer {
   margin-top:50px;
@@ -164,14 +218,14 @@ button {
   align-items:center;
 }
 .menu-chest {
-  width:60px;
-  height:60px;
+  width:70px;
+  height:70px;
   margin-top:10px;
   animation: bounce 1s infinite alternate;
 }
 @keyframes bounce {
   from { transform: translateY(0px); }
-  to { transform: translateY(-10px); }
+  to { transform: translateY(-12px); }
 }
 </style>
 </head>
@@ -197,20 +251,15 @@ button {
   </div>
   <div class="menu-buttons">
     <button class="menu-card" id="openDeckBtn">
-      <img src="https://i.imgur.com/Wz0mBbr.png" alt="Deck" class="menu-icon">
-      Customize Deck
+      <img src="https://i.imgur.com/Wz0mBbr.png" alt="Deck" class="menu-icon"> Customize Deck
     </button>
     <button class="menu-card" id="startGameBtn">
-      <img src="https://i.imgur.com/GlA1clB.png" alt="Battle" class="menu-icon">
-      Battle
+      <img src="https://i.imgur.com/GlA1clB.png" alt="Battle" class="menu-icon"> Battle
     </button>
     <button class="menu-card" id="openShopBtn">
-      <img src="https://i.imgur.com/AdX5MCc.png" alt="Shop" class="menu-icon">
-      Shop
+      <img src="https://i.imgur.com/AdX5MCc.png" alt="Shop" class="menu-icon"> Shop
     </button>
-    <button class="menu-card" id="logoutBtn">
-      Logout
-    </button>
+    <button class="menu-card" id="logoutBtn">Logout</button>
   </div>
   <div class="menu-footer">
     <span>Daily Chest</span>
@@ -274,7 +323,6 @@ loginBtn.onclick=()=>{
     mainMenu.style.display='flex';
   } else loginMsg.innerText='Invalid login';
 };
-
 createBtn.onclick=()=>{
   let acc=loadAccounts(), u=usernameInput.value, p=passwordInput.value;
   if(acc[u]){ loginMsg.innerText='Username taken'; return; }
@@ -283,7 +331,6 @@ createBtn.onclick=()=>{
   saveAccounts(acc);
   loginMsg.innerText='Account created! Please log in.';
 };
-
 document.getElementById('logoutBtn').onclick=()=>{
   saveUserData();
   currentUser=null;
@@ -293,10 +340,10 @@ document.getElementById('logoutBtn').onclick=()=>{
 
 /* ------------------ CARDS ------------------ */
 const allCards=[
-  { id:'knight', name:'Knight', elixir:3, hp:120, speed:1.2, damage:20, range:15, attackSpeed:1, type:'melee', img:'https://i.imgur.com/Wz0mBbr.png', sprites:['https://i.imgur.com/Wz0mBbr.png','https://i.imgur.com/2lKNn5L.png','https://i.imgur.com/YbUvffL.png','https://i.imgur.com/qw1GqM8.png'] },
-  { id:'archer', name:'Archer', elixir:3, hp:40, speed:1.0, damage:15, range:120, attackSpeed:1, type:'ranged', img:'https://i.imgur.com/AdX5MCc.png', sprites:['https://i.imgur.com/AdX5MCc.png','https://i.imgur.com/h77w6kc.png','https://i.imgur.com/JuJg1rY.png','https://i.imgur.com/dpftvCk.png'] },
-  { id:'giant', name:'Giant', elixir:5, hp:250, speed:0.7, damage:40, range:15, attackSpeed:1.2, type:'tower', img:'https://i.imgur.com/GlA1clB.png', sprites:['https://i.imgur.com/GlA1clB.png','https://i.imgur.com/EzQqrrS.png','https://i.imgur.com/Opqk3Xb.png','https://i.imgur.com/Q2o5s2y.png'] },
-  { id:'goblin', name:'Goblin', elixir:2, hp:25, speed:1.6, damage:10, range:15, attackSpeed:0.7, type:'melee', img:'https://i.imgur.com/6rH7TRq.png', sprites:['https://i.imgur.com/6rH7TRq.png','https://i.imgur.com/JWq8Z9K.png','https://i.imgur.com/OPmdW1v.png','https://i.imgur.com/QO6cZcL.png'] }
+{ id:'knight', name:'Knight', elixir:3, hp:120, speed:1.2, damage:20, range:15, attackSpeed:1, type:'melee', img:'https://i.imgur.com/eNkeKC0.png', sprites:['https://i.imgur.com/eNkeKC0.png','https://i.imgur.com/KhEQXom.png','https://i.imgur.com/UABUwMu.png','https://i.imgur.com/As0d7Ho.png'] },
+{ id:'archer', name:'Archer', elixir:3, hp:40, speed:1.0, damage:15, range:120, attackSpeed:1, type:'ranged', img:'https://i.imgur.com/AdX5MCc.png', sprites:['https://i.imgur.com/AdX5MCc.png','https://i.imgur.com/h77w6kc.png','https://i.imgur.com/JuJg1rY.png','https://i.imgur.com/dpftvCk.png'] },
+{ id:'giant', name:'Giant', elixir:5, hp:250, speed:0.7, damage:40, range:15, attackSpeed:1.2, type:'tower', img:'https://i.imgur.com/GlA1clB.png', sprites:['https://i.imgur.com/GlA1clB.png','https://i.imgur.com/EzQqrrS.png','https://i.imgur.com/Opqk3Xb.png','https://i.imgur.com/Q2o5s2y.png'] },
+{ id:'goblin', name:'Goblin', elixir:2, hp:25, speed:1.6, damage:10, range:15, attackSpeed:0.7, type:'melee', img:'https://i.imgur.com/6rH7TRq.png', sprites:['https://i.imgur.com/6rH7TRq.png','https://i.imgur.com/JWq8Z9K.png','https://i.imgur.com/OPmdW1v.png','https://i.imgur.com/QO6cZcL.png'] }
 ];
 
 /* ------------------ VARIABLES ------------------ */
@@ -373,7 +420,6 @@ function gameLoop(){
 
   elixir+=elixirRegen; if(elixir>maxElixir) elixir=maxElixir;
   elixirFill.style.width=(elixir/maxElixir*100)+'%';
-
   botElixir+=botElixirRegen; if(botElixir>botMaxElixir) botElixir=botMaxElixir;
   botElixirFill.style.width=(botElixir/botMaxElixir*100)+'%';
 
@@ -392,10 +438,8 @@ function gameLoop(){
   if(towers.find(t=>t.owner==='bot'&&t.hp<=0)){ alert('Victory!'); location.reload(); }
 
   if(draggedCard){ ctx.globalAlpha=0.5; const img=new Image(); img.src=draggedCard.img; ctx.drawImage(img,dragX-15,dragY-15,30,30); ctx.globalAlpha=1; }
-
   requestAnimationFrame(gameLoop);
 }
 </script>
-
 </body>
 </html>
