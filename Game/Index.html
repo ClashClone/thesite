@@ -397,9 +397,25 @@ function setupHandUI(){ handDiv.innerHTML=''; hand.forEach((c,i)=>{ const el=doc
 /* ------------------ UNIT & BOT FUNCTIONS ------------------ */
 function distance(a,b){ return Math.hypot(a.x-b.x,a.y-b.y); }
 function createUnit(c,x,y,owner){ return {...c,x,y,owner,hp:c.hp,attackCooldown:0,target:null,frameIndex:0}; }
-function moveUnit(u){ if(!u.target||u.target.hp<=0){ u.target=chooseTarget(u); } if(!u.target) return; const dx=u.target.x-u.x, dy=u.target.y-u.y, dist=Math.hypot(dx,dy); if(dist>u.range){ u.x+=dx/dist*u.speed; u.y+=dy/dist*u.speed; u.frameIndex+=0.2; if(u.frameIndex>=u.sprites.length) u.frameIndex=0; } else if(u.attackCooldown<=0){ u.target.hp-=u.damage; u.attackCooldown=u.attackSpeed*60; } if(u.attackCooldown>0) u.attackCooldown--; }
 function chooseTarget(u){ const enemies=(u.owner==='player'?botUnits:playerUnits).filter(e=>e.hp>0); const towersEnemy=towers.filter(t=>t.owner!==u.owner); const closeEnemy=enemies.find(e=>distance(u,e)<80); return closeEnemy||findClosest(u,enemies)||findClosest(u,towersEnemy); }
 function findClosest(u,list){ if(list.length===0) return null; return list.reduce((a,b)=>distance(u,a)<distance(u,b)?a:b); }
+function moveUnit(u){
+  if(!u.target||u.target.hp<=0){ u.target=chooseTarget(u); }
+  if(!u.target) return;
+  const dx=u.target.x-u.x, dy=u.target.y-u.y, dist=Math.hypot(dx,dy);
+  if(dist>u.range){
+    u.x+=dx/dist*u.speed;
+    u.y+=dy/dist*u.speed;
+    // slower animation for knight
+    let speedFactor = u.id==='knight'?0.5:1;
+    u.frameIndex += 0.2*speedFactor;
+    if(u.frameIndex>=u.sprites.length) u.frameIndex=0;
+  } else if(u.attackCooldown<=0){
+    u.target.hp-=u.damage;
+    u.attackCooldown=u.attackSpeed*60;
+  }
+  if(u.attackCooldown>0) u.attackCooldown--;
+}
 function botPlay(){ if(botUnits.length>=6) return; let card=botHand[Math.floor(Math.random()*botHand.length)]; if(botElixir>=card.elixir){ botUnits.push(createUnit(card,canvas.width-100,Math.random()*500+50,'bot')); botElixir-=card.elixir; botHand.splice(botHand.indexOf(card),1,botDeck[botNextCardIndex]); botNextCardIndex=(botNextCardIndex+1)%botDeck.length; } }
 
 /* ------------------ DRAGGING ------------------ */
@@ -411,6 +427,7 @@ function gameLoop(){
   if(!gameRunning) return;
   ctx.clearRect(0,0,canvas.width,canvas.height);
 
+  // draw towers
   towers.forEach(t=>{
     ctx.fillStyle=t.owner==='player'?'blue':'red';
     ctx.fillRect(t.x-25,t.y-25,50,50);
@@ -418,17 +435,31 @@ function gameLoop(){
     ctx.fillText(Math.floor(t.hp),t.x-15,t.y);
   });
 
+  // elixir regen
   elixir+=elixirRegen; if(elixir>maxElixir) elixir=maxElixir;
   elixirFill.style.width=(elixir/maxElixir*100)+'%';
   botElixir+=botElixirRegen; if(botElixir>botMaxElixir) botElixir=botMaxElixir;
   botElixirFill.style.width=(botElixir/botMaxElixir*100)+'%';
 
+  // move units
   playerUnits.forEach(moveUnit); botUnits.forEach(moveUnit);
 
+  // draw units
   [...playerUnits,...botUnits].forEach(u=>{
-    const img=new Image(); img.src=u.sprites[Math.floor(u.frameIndex)]; ctx.drawImage(img,u.x-15,u.y-15,30,30);
+    const img=new Image(); img.src=u.sprites[Math.floor(u.frameIndex)];
+    let w=30,h=30;
+    if(u.id==='knight'){ w*=1.5; h*=1.5; }
+    ctx.save();
+    if(u.target){
+      let angle=Math.atan2(u.target.y-u.y,u.target.x-u.x);
+      ctx.translate(u.x,u.y);
+      ctx.rotate(angle);
+      ctx.drawImage(img,-w/2,-h/2,w,h);
+    } else ctx.drawImage(img,u.x-w/2,u.y-h/2,w,h);
+    ctx.restore();
   });
 
+  // remove dead units
   playerUnits.forEach((u,i)=>{ if(u.hp<=0) playerUnits.splice(i,1); });
   botUnits.forEach((u,i)=>{ if(u.hp<=0) botUnits.splice(i,1); });
 
@@ -437,7 +468,9 @@ function gameLoop(){
   if(towers.find(t=>t.owner==='player'&&t.hp<=0)){ alert('Defeat!'); location.reload(); }
   if(towers.find(t=>t.owner==='bot'&&t.hp<=0)){ alert('Victory!'); location.reload(); }
 
+  // draw dragged card
   if(draggedCard){ ctx.globalAlpha=0.5; const img=new Image(); img.src=draggedCard.img; ctx.drawImage(img,dragX-15,dragY-15,30,30); ctx.globalAlpha=1; }
+
   requestAnimationFrame(gameLoop);
 }
 </script>
