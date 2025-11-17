@@ -1,0 +1,1720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Clash-ish Royale</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;900&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        #app-wrapper {
+            width: 100%;
+            height: 100%;
+            max-width: 450px;
+            max-height: 100vh;
+            position: relative;
+            background: linear-gradient(to bottom, #0a0a0a, #1a1a1a);
+            box-shadow: 0 0 50px rgba(0,0,0,0.8);
+        }
+        
+        #game-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        
+        #game-canvas {
+            width: 100%;
+            flex-grow: 1;
+            background: linear-gradient(to bottom, #2e7d32, #1b5e20);
+            touch-action: none;
+        }
+        
+        #ui-bar {
+            background: linear-gradient(to bottom, #37474f, #263238);
+            padding: 0.75rem;
+            border-top: 3px solid #455a64;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 -4px 12px rgba(0,0,0,0.4);
+        }
+        
+        #elixir-container {
+            background: radial-gradient(circle, #4a148c, #6a1b9a);
+            border-radius: 2rem;
+            height: 2.5rem;
+            width: 90%;
+            max-width: 200px;
+            border: 3px solid #ab47bc;
+            overflow: hidden;
+            position: relative;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+        }
+        
+        #elixir-bar {
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(90deg, #ba68c8, #f3e5f5);
+            transition: width 0.1s linear;
+            box-shadow: 0 0 15px #e040fb;
+        }
+        
+        #elixir-count {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1.25rem;
+            font-weight: 900;
+            color: #fff;
+            text-shadow: 2px 2px 4px #4a148c;
+        }
+        
+        .card {
+            width: 70px;
+            height: 98px;
+            background: linear-gradient(135deg, #3e2723, #5d4037);
+            border: 3px solid #ffd54f;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 0.25rem;
+            font-weight: 900;
+            color: #fff;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+        
+        .card-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        
+        #card-hand {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            width: 100%;
+            padding: 0 0.5rem;
+        }
+        
+        .card:active:not(.disabled) {
+            transform: scale(0.95);
+        }
+        
+        .card.selected {
+            border-color: #f48fb1;
+            transform: translateY(-8px) scale(1.05);
+            box-shadow: 0 0 20px #f06292;
+        }
+        
+        .card .elixir-cost {
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            background: radial-gradient(#ce93d8, #ab47bc);
+            color: #fff;
+            font-size: 0.9rem;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #f3e5f5;
+            font-weight: 900;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            z-index: 2;
+        }
+        
+        .card .card-name {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            font-size: 0.65rem;
+            text-align: center;
+            text-shadow: 1px 1px 2px #000;
+            background: rgba(0,0,0,0.8);
+            padding: 2px 0;
+            border-radius: 0 0 5px 5px;
+            z-index: 2;
+        }
+        
+        .card.disabled {
+            filter: grayscale(100%) brightness(0.6);
+            cursor: not-allowed;
+        }
+        
+        #game-over-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            z-index: 100;
+            padding: 1rem;
+        }
+        
+        #game-over-text {
+            font-size: 2.5rem;
+            font-weight: 900;
+            margin-bottom: 2rem;
+            text-align: center;
+            text-shadow: 2px 2px 4px #000;
+        }
+        
+        .game-button {
+            padding: 1rem 2rem;
+            font-size: 1.2rem;
+            font-weight: 900;
+            color: #fff;
+            background: linear-gradient(90deg, #f06292, #f48fb1);
+            border: 3px solid #f8bbd0;
+            border-radius: 1rem;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.5);
+            margin: 0.5rem;
+            border: none;
+        }
+        
+        .game-button:active {
+            transform: scale(0.95);
+        }
+        
+        .menu-screen {
+            width: 100%;
+            height: 100%;
+            padding: 2rem 1rem;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-y: auto;
+            background: linear-gradient(to bottom, #1a237e, #0d47a1);
+        }
+        
+        .menu-content {
+            width: 100%;
+            max-width: 400px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+            gap: 1rem;
+            width: 100%;
+            padding: 1rem;
+        }
+        
+        .shop-card-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: rgba(0,0,0,0.4);
+            padding: 1rem;
+            border-radius: 12px;
+        }
+        
+        .auth-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 24px;
+            padding: 2rem;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+        
+        .auth-input {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            margin-bottom: 1rem;
+        }
+        
+        .auth-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .auth-button {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            margin-bottom: 0.75rem;
+        }
+        
+        .auth-button:hover {
+            transform: translateY(-2px);
+        }
+        
+        .auth-button:active {
+            transform: scale(0.98);
+        }
+        
+        .auth-button.secondary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+        
+        .error-message {
+            background: #fee;
+            color: #c33;
+            padding: 0.75rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+        
+        .success-message {
+            background: #efe;
+            color: #3c3;
+            padding: 0.75rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+        
+        #startup-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #1a237e 0%, #0d47a1 50%, #01579b 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            animation: fadeOut 1s ease-in-out 3s forwards;
+        }
+        
+        @keyframes fadeOut {
+            to {
+                opacity: 0;
+                visibility: hidden;
+            }
+        }
+        
+        .startup-logo {
+            font-size: 4rem;
+            font-weight: 900;
+            color: white;
+            text-shadow: 0 0 30px rgba(255, 255, 255, 0.8), 0 0 60px rgba(102, 126, 234, 0.6);
+            animation: glow 2s ease-in-out infinite alternate, scaleUp 1s ease-out;
+            text-align: center;
+            line-height: 1.2;
+        }
+        
+        @keyframes glow {
+            from {
+                text-shadow: 0 0 20px rgba(255, 255, 255, 0.6), 0 0 40px rgba(102, 126, 234, 0.4);
+            }
+            to {
+                text-shadow: 0 0 40px rgba(255, 255, 255, 1), 0 0 80px rgba(102, 126, 234, 0.8);
+            }
+        }
+        
+        @keyframes scaleUp {
+            from {
+                transform: scale(0.5);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+        
+        .startup-subtitle {
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.8);
+            margin-top: 1rem;
+            animation: fadeIn 1s ease-in 0.5s both;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @media (max-width: 380px) {
+            #game-over-text {
+                font-size: 2rem;
+            }
+            .game-button {
+                padding: 0.75rem 1.5rem;
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="startup-screen">
+        <div class="startup-logo">
+            ROOK<br>ROYALE<br>ARENA
+        </div>
+        <div class="startup-subtitle">Prepare for Battle</div>
+    </div>
+    <div id="app-wrapper">
+        <div id="game-container"></div>
+    </div>
+    <script type="module">
+        // --- IMAGE & SOUND CONFIGURATION ---
+        // Replace these URLs with your own Imgur links and sound URLs
+        const IMAGES = {
+            knight: 'https://i.imgur.com/etRpz0z.png',
+            archer: 'https://i.imgur.com/hutQOgv.png',
+            giant: 'https://i.imgur.com/pMxsnjR.png',
+            prince: 'https://i.imgur.com/C8IVSv2.png',
+            cannon: 'https://i.imgur.com/Pi3fWTe.png',
+            minions: 'https://i.imgur.com/DnR8cKU.png',
+            balloon: 'https://i.imgur.com/v1OkDbA.png',
+            playerTower: 'https://i.imgur.com/mOX1n4Y.png',
+            enemyTower: 'https://i.imgur.com/fpI3Nro.png',
+            kingTower: 'https://i.imgur.com/tVAL84A.png',
+        };
+
+        const SOUNDS = {
+            cardPlace: 'https://files.catbox.moe/v42nxq.mp3',
+            attack: 'https://example.com/attack.mp3',
+            explosion: 'https://files.catbox.moe/v42nxq.mp3',
+            victory: 'https://files.catbox.moe/t05pk4.mp3',
+            defeat: 'https://files.catbox.moe/55gwnv.mp3',
+            background: 'https://files.catbox.moe/dqhnoz.mp3',
+            startup: 'https://files.catbox.moe/etoieb.mp3',
+        };
+
+        // --- AUDIO SYSTEM ---
+        const audioCache = {};
+        let soundEnabled = true;
+        let musicEnabled = true;
+        let backgroundMusic = null;
+
+        function preloadAudio() {
+            Object.keys(SOUNDS).forEach(key => {
+                const audio = new Audio(SOUNDS[key]);
+                audio.preload = 'auto';
+                audio.onerror = () => console.warn(`Failed to load sound: ${key}`);
+                audioCache[key] = audio;
+            });
+
+            if (SOUNDS.background) {
+                backgroundMusic = new Audio(SOUNDS.background);
+                backgroundMusic.loop = true;
+                backgroundMusic.volume = 0.3;
+                backgroundMusic.preload = 'auto';
+            }
+        }
+
+        function playSound(soundName, volume = 1.0) {
+            if (!soundEnabled || !audioCache[soundName]) return;
+            
+            try {
+                const audio = audioCache[soundName].cloneNode();
+                audio.volume = volume;
+                audio.play().catch(e => console.warn('Audio play failed:', e));
+            } catch (e) {
+                console.warn('Sound playback error:', e);
+            }
+        }
+
+        function toggleBackgroundMusic(play = true) {
+            if (!musicEnabled || !backgroundMusic) return;
+            
+            if (play) {
+                backgroundMusic.currentTime = 0; // Restart from beginning
+                backgroundMusic.play().catch(e => console.warn('Music play failed:', e));
+            } else {
+                backgroundMusic.pause();
+            }
+        }
+
+        // --- IMAGE PRELOADING ---
+        const imageCache = {};
+        let imagesLoaded = false;
+
+        function preloadImages() {
+            return new Promise((resolve) => {
+                const imageKeys = Object.keys(IMAGES);
+                let loadedCount = 0;
+
+                imageKeys.forEach(key => {
+                    const img = new Image();
+                    img.onload = () => {
+                        loadedCount++;
+                        if (loadedCount === imageKeys.length) {
+                            imagesLoaded = true;
+                            resolve();
+                        }
+                    };
+                    img.onerror = () => {
+                        console.warn(`Failed to load image: ${key}`);
+                        loadedCount++;
+                        if (loadedCount === imageKeys.length) {
+                            imagesLoaded = true;
+                            resolve();
+                        }
+                    };
+                    img.src = IMAGES[key];
+                    imageCache[key] = img;
+                });
+
+                if (imageKeys.length === 0) resolve();
+            });
+        }
+
+        // --- AUTHENTICATION & USER MANAGEMENT ---
+        let currentUser = null;
+        const USERS_KEY = 'clash_royale_users';
+
+        function loadUsers() {
+            try {
+                const data = localStorage.getItem(USERS_KEY);
+                return data ? JSON.parse(data) : {};
+            } catch (error) {
+                console.error('Error loading users:', error);
+                return {};
+            }
+        }
+
+        function saveUsers(users) {
+            try {
+                localStorage.setItem(USERS_KEY, JSON.stringify(users));
+                return true;
+            } catch (error) {
+                console.error('Error saving users:', error);
+                return false;
+            }
+        }
+
+        function registerUser(username, password) {
+            if (!username || !password) return { success: false, message: 'Username and password required' };
+            if (username.length < 3) return { success: false, message: 'Username must be at least 3 characters' };
+            if (password.length < 4) return { success: false, message: 'Password must be at least 4 characters' };
+
+            const users = loadUsers();
+            if (users[username]) return { success: false, message: 'Username already exists' };
+
+            users[username] = {
+                password: btoa(password),
+                trophies: 0,
+                ownedCards: [...INITIAL_DECK],
+                currentDeck: [...INITIAL_DECK],
+                createdAt: Date.now()
+            };
+
+            return saveUsers(users) ? { success: true, message: 'Account created successfully!' } : { success: false, message: 'Failed to save account' };
+        }
+
+        function loginUser(username, password) {
+            if (!username || !password) return { success: false, message: 'Username and password required' };
+
+            const users = loadUsers();
+            const user = users[username];
+
+            if (!user) return { success: false, message: `User '${username}' not found.` };
+            if (atob(user.password) !== password) return { success: false, message: 'Incorrect password' };
+
+            currentUser = username;
+            trophies = user.trophies || 0;
+            ownedCards = user.ownedCards || [...INITIAL_DECK];
+            currentDeck = user.currentDeck || [...INITIAL_DECK];
+
+            return { success: true, message: 'Login successful!' };
+        }
+
+        function logoutUser() {
+            saveCurrentUserData();
+            toggleBackgroundMusic(false);
+            currentUser = null;
+            trophies = 0;
+            ownedCards = [...INITIAL_DECK];
+            currentDeck = [...INITIAL_DECK];
+            changeScreen('auth');
+        }
+
+        function saveCurrentUserData() {
+            if (!currentUser) return;
+            const users = loadUsers();
+            if (users[currentUser]) {
+                users[currentUser].trophies = trophies;
+                users[currentUser].ownedCards = ownedCards;
+                users[currentUser].currentDeck = currentDeck;
+                users[currentUser].lastUpdated = Date.now();
+                saveUsers(users);
+            }
+        }
+
+        // --- GAME STATE & PERSISTENCE ---
+        let trophies = 0;
+        let ownedCards = [];
+        let currentDeck = [];
+        const SHOP_CARDS = ['knight', 'archer', 'giant', 'prince', 'cannon', 'minions', 'balloon'];
+        const INITIAL_DECK = ['knight', 'archer', 'giant', 'cannon'];
+
+        // --- GAME SETUP & CONSTANTS ---
+        const gameContainer = document.getElementById('game-container');
+        let currentScreen = 'auth';
+        let ARENA_WIDTH = 450;
+        let ARENA_HEIGHT = 700;
+        const MAX_ELIXIR = 10;
+        const ELIXIR_REGEN_RATE = 1.0 / 1.4;
+        const AI_SPAWN_COOLDOWN = 4000;
+        const MATCH_DURATION = 120;
+        const DOUBLE_ELIXIR_TIME = 60;
+
+        function updateDimensions() {
+            const wrapper = document.getElementById('app-wrapper');
+            ARENA_WIDTH = wrapper.clientWidth;
+            ARENA_HEIGHT = wrapper.clientHeight - 180;
+        }
+
+        // --- CARD DEFINITIONS ---
+        const CARD_DEFS = {
+            knight: { elixir: 3, type: 'KNIGHT', hp: 1400, damage: 150, attackSpeed: 1.1, attackRange: 15, speed: 0.8, size: 20, targetType: 'GROUND', image: 'knight', visionRange: 500 },
+            archer: { elixir: 3, type: 'ARCHER', hp: 280, damage: 85, attackSpeed: 1.0, attackRange: 100, speed: 0.7, size: 15, targetType: 'ANY', image: 'archer', visionRange: 500 },
+            giant: { elixir: 5, type: 'GIANT', hp: 3400, damage: 200, attackSpeed: 1.5, attackRange: 15, speed: 0.5, size: 30, targetType: 'BUILDING', image: 'giant', visionRange: 500 },
+            prince: { elixir: 5, type: 'PRINCE', hp: 1600, damage: 200, attackSpeed: 1.4, attackRange: 15, speed: 1.0, size: 22, targetType: 'GROUND', image: 'prince', visionRange: 500 },
+            cannon: { elixir: 3, type: 'CANNON', hp: 700, damage: 90, attackSpeed: 0.8, attackRange: 120, speed: 0, size: 35, targetType: 'GROUND', image: 'cannon', visionRange: 0, lifetime: 30, isBuilding: true },
+            minions: { elixir: 3, type: 'MINIONS', hp: 200, damage: 80, attackSpeed: 1.0, attackRange: 50, speed: 1.2, size: 12, targetType: 'ANY', image: 'minions', visionRange: 500 },
+            balloon: { elixir: 5, type: 'BALLOON', hp: 1200, damage: 600, attackSpeed: 0.5, attackRange: 15, speed: 0.3, size: 26, targetType: 'BUILDING', image: 'balloon', visionRange: 500 },
+        };
+
+        const TOWER_DEFS = {
+            PRINCESS: { hp: 2400, damage: 90, attackSpeed: 0.8, attackRange: 150, size: 40 },
+            KING: { hp: 4200, damage: 100, attackSpeed: 1.0, attackRange: 140, size: 50 }
+        };
+
+        // --- GAME STATE ---
+        let playerElixir, aiElixir, units, projectiles, towers, buildings, selectedCard, lastTime, gameTime, aiSpawnTimer, gameState, matchTimeLeft;
+        let canvas, ctx, elixirBar, elixirCount, gameOverScreen, gameOverText;
+        let PLACEMENT_Y_LIMIT, AI_PLACEMENT_Y_LIMIT, RIVER_Y, LEFT_LANE_X, RIGHT_LANE_X, BRIDGE_Y_TOP, BRIDGE_Y_BOTTOM;
+
+        function getDistance(obj1, obj2) {
+            const dx = obj1.x - obj2.x;
+            const dy = obj1.y - obj2.y;
+            return Math.sqrt(dx * dx + dy * dy);
+        }
+
+        // --- ARENA INITIALIZATION ---
+        function initArena() {
+            updateDimensions();
+            
+            RIVER_Y = ARENA_HEIGHT / 2;
+            PLACEMENT_Y_LIMIT = ARENA_HEIGHT / 2 + Math.min(100, ARENA_HEIGHT * 0.15);
+            AI_PLACEMENT_Y_LIMIT = ARENA_HEIGHT / 2 - Math.min(100, ARENA_HEIGHT * 0.15);
+            LEFT_LANE_X = ARENA_WIDTH * 0.3;
+            RIGHT_LANE_X = ARENA_WIDTH * 0.7;
+            BRIDGE_Y_TOP = RIVER_Y - 30;
+            BRIDGE_Y_BOTTOM = RIVER_Y + 30;
+            
+            playerElixir = 5.0;
+            aiElixir = 5.0;
+            matchTimeLeft = MATCH_DURATION;
+            units = [];
+            projectiles = [];
+            buildings = [];
+            selectedCard = null;
+            lastTime = 0;
+            gameTime = 0;
+            aiSpawnTimer = AI_SPAWN_COOLDOWN;
+            gameState = 'playing';
+            
+            towers = [
+                { id: 1, owner: 'player', type: 'PRINCESS', ...TOWER_DEFS.PRINCESS, maxHp: TOWER_DEFS.PRINCESS.hp, x: ARENA_WIDTH * 0.25, y: ARENA_HEIGHT - ARENA_HEIGHT * 0.25, lastAttackTime: 0 },
+                { id: 2, owner: 'player', type: 'PRINCESS', ...TOWER_DEFS.PRINCESS, maxHp: TOWER_DEFS.PRINCESS.hp, x: ARENA_WIDTH * 0.75, y: ARENA_HEIGHT - ARENA_HEIGHT * 0.25, lastAttackTime: 0 },
+                { id: 3, owner: 'player', type: 'KING', ...TOWER_DEFS.KING, maxHp: TOWER_DEFS.KING.hp, x: ARENA_WIDTH / 2, y: ARENA_HEIGHT - ARENA_HEIGHT * 0.15, lastAttackTime: 0 },
+                { id: 4, owner: 'ai', type: 'PRINCESS', ...TOWER_DEFS.PRINCESS, maxHp: TOWER_DEFS.PRINCESS.hp, x: ARENA_WIDTH * 0.25, y: ARENA_HEIGHT * 0.25, lastAttackTime: 0 },
+                { id: 5, owner: 'ai', type: 'PRINCESS', ...TOWER_DEFS.PRINCESS, maxHp: TOWER_DEFS.PRINCESS.hp, x: ARENA_WIDTH * 0.75, y: ARENA_HEIGHT * 0.25, lastAttackTime: 0 },
+                { id: 6, owner: 'ai', type: 'KING', ...TOWER_DEFS.KING, maxHp: TOWER_DEFS.KING.hp, x: ARENA_WIDTH / 2, y: ARENA_HEIGHT * 0.15, lastAttackTime: 0 }
+            ];
+            
+            canvas = document.getElementById('game-canvas');
+            ctx = canvas.getContext('2d');
+            elixirBar = document.getElementById('elixir-bar');
+            elixirCount = document.getElementById('elixir-count');
+            gameOverScreen = document.getElementById('game-over-screen');
+            gameOverText = document.getElementById('game-over-text');
+            
+            canvas.width = ARENA_WIDTH;
+            canvas.height = ARENA_HEIGHT;
+            
+            updateElixirUI();
+            updateCardUI();
+            gameOverScreen.style.display = 'none';
+            
+            document.querySelectorAll('.card').forEach(button => {
+                button.addEventListener('click', handleCardClick);
+            });
+            
+            canvas.addEventListener('click', handleCanvasClick);
+            canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+            
+            toggleBackgroundMusic(true);
+            requestAnimationFrame(gameLoop);
+        }
+
+        // --- GAME LOOP ---
+        function gameLoop(timestamp) {
+            if (gameState !== 'playing' || currentScreen !== 'arena') return;
+            const deltaTime = (timestamp - (lastTime || timestamp)) / 1000.0;
+            lastTime = timestamp;
+            gameTime += deltaTime;
+            matchTimeLeft -= deltaTime;
+            
+            if (matchTimeLeft <= 0) {
+                endGameByTime();
+                return;
+            }
+            
+            updateElixir(deltaTime);
+            updateAI(deltaTime);
+            updateUnits(deltaTime);
+            updateBuildings(deltaTime);
+            updateTowers(deltaTime);
+            updateProjectiles(deltaTime);
+            draw();
+            checkGameOver();
+            requestAnimationFrame(gameLoop);
+        }
+
+        function updateElixir(deltaTime) {
+            const elixirMultiplier = matchTimeLeft <= DOUBLE_ELIXIR_TIME ? 2 : 1;
+            
+            if (playerElixir < MAX_ELIXIR) {
+                playerElixir = Math.min(MAX_ELIXIR, playerElixir + ELIXIR_REGEN_RATE * deltaTime * elixirMultiplier);
+            }
+            
+            if (aiElixir < MAX_ELIXIR) {
+                aiElixir = Math.min(MAX_ELIXIR, aiElixir + ELIXIR_REGEN_RATE * deltaTime * elixirMultiplier);
+            }
+            
+            updateElixirUI();
+        }
+
+        function updateElixirUI() {
+            const elixirInt = Math.floor(playerElixir);
+            elixirCount.textContent = elixirInt;
+            elixirBar.style.width = `${(playerElixir / MAX_ELIXIR) * 100}%`;
+        }
+
+        function updateCardUI() {
+            document.querySelectorAll('.card').forEach(button => {
+                const cardName = button.dataset.card;
+                if (!cardName) return;
+                const card = CARD_DEFS[cardName];
+                if (playerElixir < card.elixir) {
+                    button.classList.add('disabled');
+                } else {
+                    button.classList.remove('disabled');
+                }
+                if (cardName === selectedCard) {
+                    button.classList.add('selected');
+                } else {
+                    button.classList.remove('selected');
+                }
+            });
+        }
+
+        function updateAI(deltaTime) {
+            aiSpawnTimer -= deltaTime * 1000;
+            if (aiSpawnTimer <= 0) {
+                aiSpawnTimer = AI_SPAWN_COOLDOWN + Math.random() * 2000;
+                const availableCards = ['knight', 'archer', 'giant', 'prince', 'cannon', 'minions', 'balloon'].filter(name => {
+                    const card = CARD_DEFS[name];
+                    return card && aiElixir >= card.elixir;
+                });
+                
+                if (availableCards.length > 0) {
+                    const cardName = availableCards[Math.floor(Math.random() * availableCards.length)];
+                    const card = CARD_DEFS[cardName];
+                    
+                    if (aiElixir >= card.elixir) {
+                        const spawnX = Math.random() < 0.5 ? LEFT_LANE_X : RIGHT_LANE_X;
+                        const spawnY = Math.random() * (AI_PLACEMENT_Y_LIMIT - 50) + 50;
+                        spawnUnit(cardName, 'ai', spawnX, spawnY);
+                        aiElixir -= card.elixir;
+                    }
+                }
+            }
+        }
+
+        function updateBuildings(deltaTime) {
+            for (let i = buildings.length - 1; i >= 0; i--) {
+                const building = buildings[i];
+                
+                building.lifetime -= deltaTime;
+                const hpLossPerSecond = building.maxHp / 30;
+                building.hp -= hpLossPerSecond * deltaTime;
+                
+                if (building.hp <= 0 || building.lifetime <= 0) {
+                    playSound('explosion', 0.3);
+                    buildings.splice(i, 1);
+                    continue;
+                }
+                
+                if (!building.target || building.target.hp <= 0 || getDistance(building, building.target) > building.attackRange) {
+                    const enemyOwner = building.owner === 'player' ? 'ai' : 'player';
+                    building.target = findClosestTarget(building, units.filter(u => 
+                        u.owner === enemyOwner && 
+                        u.hp > 0 && 
+                        getDistance(building, u) <= building.attackRange
+                    ));
+                }
+                
+                if (building.target) {
+                    const attackCooldown = 1.0 / building.attackSpeed;
+                    if (gameTime - building.lastAttackTime >= attackCooldown) {
+                        building.lastAttackTime = gameTime;
+                        spawnProjectile(building, building.target);
+                        playSound('attack', 0.2);
+                    }
+                }
+            }
+        }
+
+        function updateUnits(deltaTime) {
+            for (let i = units.length - 1; i >= 0; i--) {
+                const unit = units[i];
+                if (unit.hp <= 0) {
+                    playSound('explosion', 0.3);
+                    units.splice(i, 1);
+                    continue;
+                }
+                
+                const newTarget = findTargetForUnit(unit);
+                unit.target = newTarget;
+                
+                if (!unit.target) {
+                    unit.isMoving = true;
+                    unit.animationTimer += deltaTime * 10;
+                    unit.animationTimer %= (Math.PI * 2);
+                    
+                    const moveTargetY = unit.owner === 'player' ? 0 : ARENA_HEIGHT;
+                    const dy = moveTargetY - unit.y;
+                    
+                    if (Math.abs(dy) > 5) {
+                        const moveSpeed = unit.speed * 60 * deltaTime;
+                        unit.y += (dy > 0 ? 1 : -1) * moveSpeed;
+                    }
+                    continue;
+                }
+                
+                const dist = getDistance(unit, unit.target);
+                
+                if (dist <= unit.attackRange + unit.size/2) {
+                    unit.isMoving = false;
+                    const attackCooldown = 1.0 / unit.attackSpeed;
+                    if (gameTime - unit.lastAttackTime >= attackCooldown) {
+                        unit.lastAttackTime = gameTime;
+                        if (unit.attackRange > 20) {
+                            spawnProjectile(unit, unit.target);
+                        } else {
+                            unit.target.hp -= unit.damage;
+                        }
+                        playSound('attack', 0.2);
+                    }
+                } else {
+                    unit.isMoving = true;
+                    unit.animationTimer += deltaTime * 10;
+                    unit.animationTimer %= (Math.PI * 2);
+                    
+                    let moveTargetX = unit.target.x;
+                    let moveTargetY = unit.target.y;
+                    
+                    const onOwnSide = (unit.owner === 'player' && unit.y > BRIDGE_Y_BOTTOM) || 
+                                      (unit.owner === 'ai' && unit.y < BRIDGE_Y_TOP);
+                    const targetOnOtherSide = (unit.owner === 'player' && unit.target.y < RIVER_Y) || 
+                                               (unit.owner === 'ai' && unit.target.y > RIVER_Y);
+                    
+                    if (onOwnSide && targetOnOtherSide) {
+                        moveTargetX = unit.lane === 'left' ? LEFT_LANE_X : RIGHT_LANE_X;
+                        moveTargetY = unit.owner === 'player' ? BRIDGE_Y_BOTTOM - 5 : BRIDGE_Y_TOP + 5;
+                    }
+                    
+                    const dx = moveTargetX - unit.x;
+                    const dy = moveTargetY - unit.y;
+                    const moveDist = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (moveDist > 1) {
+                        const angle = Math.atan2(dy, dx);
+                        const moveSpeed = unit.speed * 60 * deltaTime;
+                        unit.x += Math.cos(angle) * moveSpeed;
+                        unit.y += Math.sin(angle) * moveSpeed;
+                    }
+                }
+            }
+        }
+
+        function findTargetForUnit(unit) {
+            const enemyOwner = unit.owner === 'player' ? 'ai' : 'player';
+            
+            const nearbyBuildings = buildings.filter(b => 
+                b.owner === enemyOwner && 
+                b.hp > 0 && 
+                getDistance(unit, b) <= 200
+            );
+            
+            if (nearbyBuildings.length > 0) {
+                return findClosestTarget(unit, nearbyBuildings);
+            }
+            
+            const nearbyUnits = units.filter(u => 
+                u.owner === enemyOwner && 
+                u.hp > 0 && 
+                getDistance(unit, u) <= 150
+            );
+            
+            if (nearbyUnits.length > 0 && unit.targetType !== 'BUILDING') {
+                return findClosestTarget(unit, nearbyUnits);
+            }
+            
+            const allTowers = towers.filter(t => 
+                t.owner === enemyOwner && 
+                t.hp > 0
+            );
+            
+            if (allTowers.length > 0) {
+                return findClosestTarget(unit, allTowers);
+            }
+            
+            return null;
+        }
+
+        function findClosestTarget(source, targets) {
+            let closestTarget = null;
+            let minDistance = Infinity;
+            for (const target of targets) {
+                const dist = getDistance(source, target);
+                if (dist < minDistance) {
+                    minDistance = dist;
+                    closestTarget = target;
+                }
+            }
+            return closestTarget;
+        }
+
+        function updateTowers(deltaTime) {
+            for (const tower of towers) {
+                if (tower.hp <= 0) continue;
+                if (!tower.target || tower.target.hp <= 0 || getDistance(tower, tower.target) > tower.attackRange) {
+                    const enemyOwner = tower.owner === 'player' ? 'ai' : 'player';
+                    tower.target = findClosestTarget(tower, units.filter(u => 
+                        u.owner === enemyOwner && 
+                        u.hp > 0 && 
+                        getDistance(tower, u) <= tower.attackRange
+                    ));
+                }
+                if (tower.target) {
+                    const attackCooldown = 1.0 / tower.attackSpeed;
+                    if (gameTime - tower.lastAttackTime >= attackCooldown) {
+                        tower.lastAttackTime = gameTime;
+                        spawnProjectile(tower, tower.target);
+                        playSound('attack', 0.15);
+                    }
+                }
+            }
+        }
+
+        function updateProjectiles(deltaTime) {
+            for (let i = projectiles.length - 1; i >= 0; i--) {
+                const proj = projectiles[i];
+                const dx = proj.target.x - proj.x;
+                const dy = proj.target.y - proj.y;
+                const dist = Math.sqrt(dx*dx + dy*dy);
+                if (dist < proj.speed * deltaTime * 60) {
+                    if(proj.target.hp > 0) {
+                        proj.target.hp -= proj.damage;
+                    }
+                    projectiles.splice(i, 1);
+                } else {
+                    const angle = Math.atan2(dy, dx);
+                    proj.x += Math.cos(angle) * proj.speed * 60 * deltaTime;
+                    proj.y += Math.sin(angle) * proj.speed * 60 * deltaTime;
+                }
+            }
+        }
+
+        function checkGameOver() {
+            const playerKing = towers.find(t => t.owner === 'player' && t.type === 'KING');
+            const aiKing = towers.find(t => t.owner === 'ai' && t.type === 'KING');
+            if (aiKing.hp <= 0) {
+                endGame(true);
+            } else if (playerKing.hp <= 0) {
+                endGame(false);
+            }
+        }
+
+        function endGame(playerWon) {
+            gameState = 'over';
+            toggleBackgroundMusic(false);
+            const trophyChange = playerWon ? 30 : -20;
+            trophies = Math.max(0, trophies + trophyChange);
+            saveCurrentUserData();
+            gameOverScreen.style.display = 'flex';
+            gameOverText.textContent = playerWon ? `YOU WIN! (+${trophyChange} 🏆)` : `YOU LOSE! (${trophyChange} 🏆)`;
+            gameOverText.style.color = playerWon ? "#4caf50" : "#f44336";
+            playSound(playerWon ? 'victory' : 'defeat', 0.5);
+        }
+
+        function endGameByTime() {
+            gameState = 'over';
+            toggleBackgroundMusic(false);
+            
+            const playerTotalHp = towers.filter(t => t.owner === 'player').reduce((sum, t) => sum + t.hp, 0);
+            const aiTotalHp = towers.filter(t => t.owner === 'ai').reduce((sum, t) => sum + t.hp, 0);
+            
+            const playerWon = playerTotalHp > aiTotalHp;
+            const trophyChange = playerWon ? 30 : -20;
+            
+            trophies = Math.max(0, trophies + trophyChange);
+            saveCurrentUserData();
+            gameOverScreen.style.display = 'flex';
+            
+            if (playerTotalHp === aiTotalHp) {
+                gameOverText.textContent = 'DRAW! (0 🏆)';
+                gameOverText.style.color = "#ff9800";
+            } else {
+                gameOverText.textContent = playerWon ? `TIME UP! YOU WIN! (+${trophyChange} 🏆)` : `TIME UP! YOU LOSE! (${trophyChange} 🏆)`;
+                gameOverText.style.color = playerWon ? "#4caf50" : "#f44336";
+                playSound(playerWon ? 'victory' : 'defeat', 0.5);
+            }
+        }
+
+        // --- DRAW FUNCTIONS ---
+        function draw() {
+            ctx.clearRect(0, 0, ARENA_WIDTH, ARENA_HEIGHT);
+            drawArena();
+            drawTimer();
+            towers.forEach(drawTower);
+            buildings.forEach(drawBuilding);
+            units.forEach(drawUnit);
+            projectiles.forEach(drawProjectile);
+            if (selectedCard) {
+                drawPlacementIndicator();
+            }
+        }
+
+        function drawTimer() {
+            const minutes = Math.floor(matchTimeLeft / 60);
+            const seconds = Math.floor(matchTimeLeft % 60);
+            const timeString = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            
+            ctx.save();
+            ctx.font = 'bold 28px Poppins';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'top';
+            
+            const isDoubleElixir = matchTimeLeft <= DOUBLE_ELIXIR_TIME;
+            ctx.fillStyle = isDoubleElixir ? 'rgba(156, 39, 176, 0.8)' : 'rgba(0, 0, 0, 0.6)';
+            ctx.fillRect(ARENA_WIDTH/2 - 60, 10, 120, 40);
+            
+            ctx.fillStyle = isDoubleElixir ? '#e1bee7' : '#ffffff';
+            ctx.fillText(timeString, ARENA_WIDTH/2, 20);
+            
+            if (isDoubleElixir) {
+                ctx.font = 'bold 14px Poppins';
+                ctx.fillStyle = '#ffeb3b';
+                ctx.fillText('2X ELIXIR', ARENA_WIDTH/2, 48);
+            }
+            
+            ctx.restore();
+        }
+
+        function drawArena() {
+            const grassGradient = ctx.createLinearGradient(0, 0, 0, ARENA_HEIGHT);
+            grassGradient.addColorStop(0, '#2e7d32');
+            grassGradient.addColorStop(1, '#1b5e20');
+            ctx.fillStyle = grassGradient;
+            ctx.fillRect(0, 0, ARENA_WIDTH, ARENA_HEIGHT);
+
+            const riverGradient = ctx.createLinearGradient(0, RIVER_Y - 15, 0, RIVER_Y + 15);
+            riverGradient.addColorStop(0, '#1976d2');
+            riverGradient.addColorStop(1, '#0d47a1');
+            ctx.fillStyle = riverGradient;
+            ctx.fillRect(0, RIVER_Y - 15, ARENA_WIDTH, 30);
+
+            const bridgeGradient = ctx.createLinearGradient(0, BRIDGE_Y_TOP, 0, BRIDGE_Y_BOTTOM);
+            bridgeGradient.addColorStop(0, '#8d6e63');
+            bridgeGradient.addColorStop(1, '#6d4c41');
+            ctx.fillStyle = bridgeGradient;
+            const bridgeWidth = ARENA_WIDTH * 0.15;
+            ctx.fillRect(LEFT_LANE_X - bridgeWidth/2, BRIDGE_Y_TOP, bridgeWidth, BRIDGE_Y_BOTTOM - BRIDGE_Y_TOP);
+            ctx.fillRect(RIGHT_LANE_X - bridgeWidth/2, BRIDGE_Y_TOP, bridgeWidth, BRIDGE_Y_BOTTOM - BRIDGE_Y_TOP);
+
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+            ctx.lineWidth = 3;
+            ctx.setLineDash([8, 8]);
+            ctx.beginPath();
+            ctx.moveTo(0, PLACEMENT_Y_LIMIT);
+            ctx.lineTo(ARENA_WIDTH, PLACEMENT_Y_LIMIT);
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
+
+        function drawTower(tower) {
+            const x = tower.x;
+            const y = tower.y;
+            const s = tower.size;
+
+            const imageKey = tower.type === 'KING' ? 'kingTower' : (tower.owner === 'player' ? 'playerTower' : 'enemyTower');
+            if (imageCache[imageKey] && imageCache[imageKey].complete) {
+                ctx.save();
+                if (tower.owner === 'ai') {
+                    ctx.translate(x, y);
+                    ctx.rotate(Math.PI);
+                    ctx.drawImage(imageCache[imageKey], -s/2, -s/2, s, s);
+                } else {
+                    ctx.drawImage(imageCache[imageKey], x - s/2, y - s/2, s, s);
+                }
+                ctx.restore();
+            } else {
+                const teamColor = tower.owner === 'player' ? '#2196f3' : '#f44336';
+                ctx.fillStyle = teamColor;
+                ctx.fillRect(x - s/2, y - s/2, s, s);
+            }
+
+            let yOffset = tower.type === 'KING' ? -s/2 - 10 : -s/2 - 10;
+            drawHealthBar(tower, yOffset);
+        }
+
+        function drawBuilding(building) {
+            const x = building.x;
+            const y = building.y;
+            const s = building.size;
+            
+            if (imageCache[building.image] && imageCache[building.image].complete) {
+                ctx.save();
+                if (building.owner === 'ai') {
+                    ctx.translate(x, y);
+                    ctx.rotate(Math.PI);
+                    ctx.drawImage(imageCache[building.image], -s/2, -s/2, s, s);
+                } else {
+                    ctx.drawImage(imageCache[building.image], x - s/2, y - s/2, s, s);
+                }
+                ctx.restore();
+            } else {
+                const teamColor = building.owner === 'player' ? '#2196f3' : '#f44336';
+                ctx.fillStyle = '#616161';
+                ctx.beginPath();
+                ctx.arc(x, y, s/2, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.strokeStyle = teamColor;
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                ctx.arc(x, y, s/2 + 2, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+            
+            const lifetimePercent = building.lifetime / 30;
+            ctx.strokeStyle = lifetimePercent > 0.5 ? '#4caf50' : lifetimePercent > 0.2 ? '#ffeb3b' : '#f44336';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(x, y, s/2 + 6, -Math.PI/2, -Math.PI/2 + (Math.PI * 2 * lifetimePercent));
+            ctx.stroke();
+            
+            drawHealthBar(building, -s/2 - 10);
+        }
+
+        function drawUnit(unit) {
+            const x = unit.x;
+            const s = unit.size;
+            const yOffset = unit.isMoving ? Math.sin(unit.animationTimer) * 3 : 0;
+            const finalY = unit.y + yOffset;
+
+            ctx.shadowColor = 'rgba(0,0,0,0.3)';
+            ctx.shadowBlur = 5;
+            ctx.shadowOffsetY = 3;
+
+            const teamColor = unit.owner === 'player' ? '#2196f3' : '#f44336';
+            ctx.fillStyle = teamColor;
+            ctx.beginPath();
+            ctx.ellipse(x, finalY + s/2, s, s/2, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.shadowColor = 'transparent';
+
+            if (imageCache[unit.image] && imageCache[unit.image].complete) {
+                ctx.save();
+                ctx.translate(x, finalY);
+                
+                // Calculate rotation based on movement direction
+                let rotation = 0;
+                if (unit.target) {
+                    const dx = unit.target.x - unit.x;
+                    const dy = unit.target.y - unit.y;
+                    rotation = Math.atan2(dy, dx) + Math.PI / 2; // +90 degrees so image faces direction of movement
+                } else {
+                    // If no target, face the direction they're naturally moving
+                    rotation = unit.owner === 'player' ? 0 : Math.PI;
+                }
+                
+                ctx.rotate(rotation);
+                ctx.drawImage(imageCache[unit.image], -s, -s, s * 2, s * 2);
+                ctx.restore();
+            } else {
+                ctx.fillStyle = teamColor;
+                ctx.beginPath();
+                ctx.arc(x, finalY, s, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            drawHealthBar(unit, yOffset - s - 5);
+        }
+
+        function drawHealthBar(entity, yOffset = 0) {
+            if (entity.hp <= 0 || entity.hp === entity.maxHp) return;
+            const barWidth = entity.size * 1.8;
+            const barHeight = 6;
+            const barX = entity.x - barWidth / 2;
+            const barY = entity.y + yOffset - entity.size / 2 - 15;
+            const hpPercent = entity.hp / entity.maxHp;
+            ctx.fillStyle = '#424242';
+            ctx.fillRect(barX, barY, barWidth, barHeight);
+            ctx.fillStyle = hpPercent > 0.5 ? '#66bb6a' : hpPercent > 0.2 ? '#ffeb3b' : '#ef5350';
+            ctx.fillRect(barX, barY, barWidth * hpPercent, barHeight);
+            ctx.strokeStyle = '#212121';
+            ctx.lineWidth = 1.5;
+            ctx.strokeRect(barX, barY, barWidth, barHeight);
+        }
+
+        function drawProjectile(proj) {
+            const teamColor = proj.owner === 'player' ? '#64b5f6' : '#ef5350';
+            const glowColor = proj.owner === 'player' ? 'rgba(100, 181, 246, 0.6)' : 'rgba(239, 83, 80, 0.6)';
+            ctx.fillStyle = glowColor;
+            ctx.beginPath();
+            ctx.arc(proj.x, proj.y, proj.size * 2.5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = teamColor;
+            ctx.beginPath();
+            ctx.arc(proj.x, proj.y, proj.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        function drawPlacementIndicator() {
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.fillRect(0, PLACEMENT_Y_LIMIT, ARENA_WIDTH, ARENA_HEIGHT - PLACEMENT_Y_LIMIT);
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
+            ctx.strokeRect(0, PLACEMENT_Y_LIMIT, ARENA_WIDTH, ARENA_HEIGHT - PLACEMENT_Y_LIMIT);
+            ctx.setLineDash([]);
+        }
+
+        // --- EVENT HANDLERS ---
+        function handleCardClick(e) {
+            if (gameState !== 'playing') return;
+            const button = e.currentTarget;
+            const cardName = button.dataset.card;
+            const card = CARD_DEFS[cardName];
+            if (playerElixir < card.elixir) return;
+            selectedCard = selectedCard === cardName ? null : cardName;
+            updateCardUI();
+        }
+
+        function handleCanvasClick(e) {
+            if (gameState !== 'playing' || !selectedCard) return;
+            const rect = canvas.getBoundingClientRect();
+            const x = (e.clientX - rect.left) * (ARENA_WIDTH / rect.width);
+            const y = (e.clientY - rect.top) * (ARENA_HEIGHT / rect.height);
+            if (y < PLACEMENT_Y_LIMIT) return;
+            const card = CARD_DEFS[selectedCard];
+            if (playerElixir >= card.elixir) {
+                playerElixir -= card.elixir;
+                spawnUnit(selectedCard, 'player', x, y);
+                playSound('cardPlace', 0.4);
+                selectedCard = null;
+                updateCardUI();
+                updateElixirUI();
+            }
+        }
+
+        function handleTouchStart(e) {
+            e.preventDefault();
+            if (gameState !== 'playing' || !selectedCard) return;
+            const touch = e.touches[0];
+            const rect = canvas.getBoundingClientRect();
+            const x = (touch.clientX - rect.left) * (ARENA_WIDTH / rect.width);
+            const y = (touch.clientY - rect.top) * (ARENA_HEIGHT / rect.height);
+            if (y < PLACEMENT_Y_LIMIT) return;
+            const card = CARD_DEFS[selectedCard];
+            if (playerElixir >= card.elixir) {
+                playerElixir -= card.elixir;
+                spawnUnit(selectedCard, 'player', x, y);
+                playSound('cardPlace', 0.4);
+                selectedCard = null;
+                updateCardUI();
+                updateElixirUI();
+            }
+        }
+
+        // --- SPAWNING ---
+        function spawnUnit(cardName, owner, x, y) {
+            const card = CARD_DEFS[cardName];
+            
+            if (card.isBuilding) {
+                const building = {
+                    ...card,
+                    id: Math.random(),
+                    owner: owner,
+                    x: x,
+                    y: y,
+                    hp: card.hp,
+                    maxHp: card.hp,
+                    lastAttackTime: 0,
+                    target: null,
+                    lifetime: card.lifetime,
+                };
+                buildings.push(building);
+                return;
+            }
+            
+            const unit = {
+                ...card,
+                id: Math.random(),
+                owner: owner,
+                x: x,
+                y: y,
+                hp: card.hp,
+                maxHp: card.hp,
+                lastAttackTime: 0,
+                target: null,
+                isMoving: false,
+                lane: x < ARENA_WIDTH / 2 ? 'left' : 'right',
+                animationTimer: Math.random() * Math.PI * 2,
+            };
+            units.push(unit);
+        }
+
+        function spawnProjectile(source, target) {
+            const proj = {
+                owner: source.owner,
+                x: source.x,
+                y: source.y,
+                damage: source.damage,
+                target: target,
+                speed: 12,
+                size: 6
+            };
+            projectiles.push(proj);
+        }
+
+        // --- UI RENDERING ---
+        function renderCardHTML(cardName, showCost = true) {
+            const card = CARD_DEFS[cardName];
+            if (!card) return '';
+            
+            const imageUrl = IMAGES[card.image] || '';
+            
+            return `
+                <button class="card" data-card="${cardName}">
+                    ${showCost ? `<span class="elixir-cost">${card.elixir}</span>` : ''}
+                    ${imageUrl ? `<img src="${imageUrl}" class="card-image" alt="${cardName}">` : `<div class="card-icon">${cardName[0].toUpperCase()}</div>`}
+                    <span class="card-name">${cardName.toUpperCase()}</span>
+                </button>
+            `;
+        }
+
+        function renderAuthScreen() {
+            gameContainer.innerHTML = `
+                <div class="flex items-center justify-center w-full h-full bg-gradient-to-br from-purple-600 via-pink-500 to-red-500">
+                    <div class="auth-container">
+                        <h1 class="text-4xl font-black text-center mb-2" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Rook Royale Arena</h1>
+                        <p class="text-center text-gray-600 mb-4 text-sm">A strategic battle game</p>
+                        
+                        <div id="auth-message"></div>
+                        
+                        <div id="login-form">
+                            <input type="text" id="login-username" class="auth-input" placeholder="Username" autocomplete="username">
+                            <input type="password" id="login-password" class="auth-input" placeholder="Password" autocomplete="current-password">
+                            <button class="auth-button" onclick="handleLogin()">Login</button>
+                            <button class="auth-button secondary" onclick="showRegister()">Create Account</button>
+                        </div>
+                        
+                        <div id="register-form" style="display: none;">
+                            <input type="text" id="register-username" class="auth-input" placeholder="Username (min 3 chars)" autocomplete="username">
+                            <input type="password" id="register-password" class="auth-input" placeholder="Password (min 4 chars)" autocomplete="new-password">
+                            <input type="password" id="register-confirm" class="auth-input" placeholder="Confirm Password" autocomplete="new-password">
+                            <button class="auth-button" onclick="handleRegister()">Register</button>
+                            <button class="auth-button secondary" onclick="showLogin()">Back to Login</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderMainMenu() {
+            gameContainer.innerHTML = `
+                <div class="menu-screen">
+                    <div class="menu-content">
+                        <h1 class="text-5xl font-black text-white mb-2 drop-shadow-lg text-center">Rook Royale Arena</h1>
+                        <div class="text-sm text-gray-300 mb-4 text-center">Welcome, <span class="font-bold text-yellow-300">${currentUser}</span>!</div>
+                        <div class="text-3xl font-bold text-yellow-300 mb-8 drop-shadow-md text-center">
+                            🏆 ${trophies}
+                        </div>
+                        <button class="game-button w-full max-w-xs" onclick="changeScreen('arena')">FIGHT!</button>
+                        <button class="game-button w-full max-w-xs bg-gradient-to-r from-indigo-500 to-purple-600" onclick="changeScreen('deck')">Deck Customizer</button>
+                        <button class="game-button w-full max-w-xs bg-gradient-to-r from-teal-500 to-cyan-600" onclick="changeScreen('shop')">Shop</button>
+                        <button class="game-button w-full max-w-xs bg-gradient-to-r from-yellow-500 to-orange-600" onclick="toggleSettings()">Settings</button>
+                        <button class="game-button w-full max-w-xs bg-gradient-to-r from-gray-600 to-gray-700" onclick="logoutUser()">Logout</button>
+                        
+                        <div id="settings-panel" style="display: none;" class="mt-4 w-full max-w-xs bg-black bg-opacity-60 rounded-xl p-4">
+                            <h3 class="text-white font-bold mb-3 text-center">Audio Settings</h3>
+                            <div class="flex items-center justify-between mb-3">
+                                <span class="text-white">Sound Effects</span>
+                                <label class="relative inline-block w-12 h-6">
+                                    <input type="checkbox" id="sound-toggle" ${soundEnabled ? 'checked' : ''} onchange="toggleSound()" class="sr-only peer">
+                                    <div class="w-full h-full bg-gray-600 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
+                                </label>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-white">Background Music</span>
+                                <label class="relative inline-block w-12 h-6">
+                                    <input type="checkbox" id="music-toggle" ${musicEnabled ? 'checked' : ''} onchange="toggleMusic()" class="sr-only peer">
+                                    <div class="w-full h-full bg-gray-600 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function toggleSettings() {
+            const panel = document.getElementById('settings-panel');
+            if (panel) {
+                panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+            }
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+        }
+
+        function toggleMusic() {
+            musicEnabled = !musicEnabled;
+            if (musicEnabled && currentScreen === 'arena') {
+                toggleBackgroundMusic(true);
+            } else {
+                toggleBackgroundMusic(false);
+            }
+        }
+
+        function renderShop() {
+            const cardsToBuy = SHOP_CARDS.filter(name => !ownedCards.includes(name));
+            gameContainer.innerHTML = `
+                <div class="menu-screen">
+                    <div class="menu-content">
+                        <h1 class="text-4xl font-black text-white mb-4">Shop</h1>
+                        <div class="text-xl font-bold text-yellow-300 mb-6">🏆 ${trophies} Trophies</div>
+                        <div class="card-grid">
+                            ${cardsToBuy.map(name => `
+                                <div class="shop-card-item">
+                                    ${renderCardHTML(name, true)}
+                                    <button class="mt-3 text-sm bg-gradient-to-r from-pink-500 to-rose-600 text-white px-4 py-2 rounded-lg font-bold" onclick="buyCard('${name}')">Get Free</button>
+                                </div>
+                            `).join('')}
+                            ${cardsToBuy.length === 0 ? '<p class="text-gray-300 col-span-full text-center">You own all cards!</p>' : ''}
+                        </div>
+                        <button class="game-button mt-6" onclick="changeScreen('main')">Back</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function buyCard(cardName) {
+            if (!ownedCards.includes(cardName)) {
+                ownedCards.push(cardName);
+                saveCurrentUserData();
+                renderShop();
+            }
+        }
+
+        function renderDeckCustomizer() {
+            let availableCards = ownedCards.filter(name => !currentDeck.includes(name));
+            gameContainer.innerHTML = `
+                <div class="menu-screen">
+                    <div class="menu-content">
+                        <h1 class="text-4xl font-black text-white mb-4">Deck Builder</h1>
+                        <p class="text-gray-200 mb-6 text-center px-4">Tap cards to swap them in or out</p>
+                        <div class="w-full bg-black bg-opacity-40 rounded-2xl p-4 mb-6">
+                            <h2 class="text-xl font-bold text-white mb-3 text-center">Your Deck (4 Cards)</h2>
+                            <div class="flex justify-center gap-2 flex-wrap">
+                                ${currentDeck.map(name => `
+                                    <button class="card" data-card="${name}" onclick="removeFromDeck('${name}')">
+                                        <span class="elixir-cost">${CARD_DEFS[name].elixir}</span>
+                                        ${IMAGES[CARD_DEFS[name].image] ? `<img src="${IMAGES[CARD_DEFS[name].image]}" class="card-image" alt="${name}">` : ''}
+                                        <span class="card-name">${name.toUpperCase()}</span>
+                                    </button>
+                                `).join('')}
+                                ${currentDeck.length < 4 ? '<div class="w-20 h-28 border-2 border-dashed border-white rounded-lg flex items-center justify-center text-white text-xs">Empty</div>'.repeat(4 - currentDeck.length) : ''}
+                            </div>
+                        </div>
+                        <div class="w-full bg-black bg-opacity-40 rounded-2xl p-4">
+                            <h2 class="text-xl font-bold text-white mb-3 text-center">Collection (${ownedCards.length})</h2>
+                            <div class="flex flex-wrap justify-center gap-2">
+                                ${availableCards.map(name => `
+                                    <button class="card ${currentDeck.length >= 4 ? 'disabled' : ''}" data-card="${name}" onclick="addToDeck('${name}')">
+                                        <span class="elixir-cost">${CARD_DEFS[name].elixir}</span>
+                                        ${IMAGES[CARD_DEFS[name].image] ? `<img src="${IMAGES[CARD_DEFS[name].image]}" class="card-image" alt="${name}">` : ''}
+                                        <span class="card-name">${name.toUpperCase()}</span>
+                                    </button>
+                                `).join('')}
+                                ${availableCards.length === 0 ? '<p class="text-gray-300 text-center w-full">All cards in deck!</p>' : ''}
+                            </div>
+                        </div>
+                        <button class="game-button mt-6" onclick="changeScreen('main')">Back</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function removeFromDeck(cardName) {
+            const index = currentDeck.indexOf(cardName);
+            if (index > -1) {
+                currentDeck.splice(index, 1);
+                saveCurrentUserData();
+                renderDeckCustomizer();
+            }
+        }
+
+        function addToDeck(cardName) {
+            if (currentDeck.length < 4 && !currentDeck.includes(cardName)) {
+                currentDeck.push(cardName);
+                saveCurrentUserData();
+                renderDeckCustomizer();
+            }
+        }
+
+        function renderArena() {
+            gameContainer.innerHTML = `
+                <canvas id="game-canvas"></canvas>
+                <div id="game-over-screen">
+                    <h2 id="game-over-text">You Win!</h2>
+                    <button class="game-button" onclick="initArena()">Play Again</button>
+                    <button class="game-button" style="background: linear-gradient(90deg, #616161, #757575);" onclick="changeScreen('main')">Main Menu</button>
+                </div>
+                <div id="ui-bar">
+                    <div id="elixir-container">
+                        <div id="elixir-bar"></div>
+                        <span id="elixir-count">5</span>
+                    </div>
+                    <div id="card-hand">
+                        ${currentDeck.map(name => renderCardHTML(name, true)).join('')}
+                    </div>
+                </div>
+            `;
+            initArena();
+        }
+
+        function showMessage(message, isError = false) {
+            const messageDiv = document.getElementById('auth-message');
+            if (messageDiv) {
+                messageDiv.innerHTML = `<div class="${isError ? 'error-message' : 'success-message'}">${message}</div>`;
+                setTimeout(() => {
+                    messageDiv.innerHTML = '';
+                }, 3000);
+            }
+        }
+
+        function showLogin() {
+            document.getElementById('login-form').style.display = 'block';
+            document.getElementById('register-form').style.display = 'none';
+            document.getElementById('auth-message').innerHTML = '';
+        }
+
+        function showRegister() {
+            document.getElementById('login-form').style.display = 'none';
+            document.getElementById('register-form').style.display = 'block';
+            document.getElementById('auth-message').innerHTML = '';
+        }
+
+        function handleLogin() {
+            const username = document.getElementById('login-username').value.trim();
+            const password = document.getElementById('login-password').value;
+            
+            const result = loginUser(username, password);
+            
+            if (result.success) {
+                showMessage(result.message, false);
+                setTimeout(() => {
+                    changeScreen('main');
+                }, 500);
+            } else {
+                showMessage(result.message, true);
+            }
+        }
+
+        function handleRegister() {
+            const username = document.getElementById('register-username').value.trim();
+            const password = document.getElementById('register-password').value;
+            const confirm = document.getElementById('register-confirm').value;
+            
+            if (password !== confirm) {
+                showMessage('Passwords do not match', true);
+                return;
+            }
+            
+            const result = registerUser(username, password);
+            
+            if (result.success) {
+                showMessage(result.message, false);
+                setTimeout(() => {
+                    showLogin();
+                }, 1500);
+            } else {
+                showMessage(result.message, true);
+            }
+        }
+
+        function changeScreen(screenName) {
+            if (screenName !== 'arena') {
+                toggleBackgroundMusic(false);
+            }
+            currentScreen = screenName;
+            renderApp();
+        }
+
+        function renderLoading() {
+            gameContainer.innerHTML = `
+                <div class="menu-screen">
+                    <div class="flex flex-col items-center justify-center h-full">
+                        <svg class="animate-spin h-16 w-16 text-white mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <p class="text-white text-xl">Loading Assets...</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderApp() {
+            switch(currentScreen) {
+                case 'auth':
+                    renderAuthScreen();
+                    break;
+                case 'main':
+                    renderMainMenu();
+                    break;
+                case 'shop':
+                    renderShop();
+                    break;
+                case 'deck':
+                    renderDeckCustomizer();
+                    break;
+                case 'arena':
+                    renderArena();
+                    break;
+                default:
+                    renderAuthScreen();
+            }
+        }
+
+        // Make functions globally available
+        window.changeScreen = changeScreen;
+        window.buyCard = buyCard;
+        window.addToDeck = addToDeck;
+        window.removeFromDeck = removeFromDeck;
+        window.initArena = initArena;
+        window.handleLogin = handleLogin;
+        window.handleRegister = handleRegister;
+        window.showLogin = showLogin;
+        window.showRegister = showRegister;
+        window.logoutUser = logoutUser;
+        window.toggleSettings = toggleSettings;
+        window.toggleSound = toggleSound;
+        window.toggleMusic = toggleMusic;
+
+        // Start the app
+        async function startApp() {
+            // Play startup sound
+            playSound('startup', 0.6);
+            
+            // Wait for startup screen to finish (3 seconds)
+            setTimeout(() => {
+                renderLoading();
+                
+                // Preload audio
+                preloadAudio();
+                
+                // Preload images
+                preloadImages().then(() => {
+                    setTimeout(() => {
+                        currentScreen = 'auth';
+                        renderApp();
+                    }, 500);
+                });
+            }, 3000);
+        }
+        
+        startApp();
+    </script>
+</body>
+</html>
+
+
